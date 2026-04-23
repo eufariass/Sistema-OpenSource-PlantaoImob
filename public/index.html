@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/theme.css" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -642,7 +643,7 @@
   
   <aside class="sidebar">
     <div class="brand">
-      <img src="/logo-white.png" alt="Imobiliaria Geum" />
+      <img src="/logo-white.png" alt="Imob OpenSource" />
     </div>
     <nav class="nav-menu" role="tablist">
       <button class="nav-item active" role="tab" onclick="switchNav('lead',this)"><i data-lucide="layout-dashboard"></i> Painel Principal</button>
@@ -962,6 +963,7 @@
     </div>
   </div>
 </div>
+<script src="/shared/client.js"></script>
 <script>
   function switchNav(id, btn) {
     document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
@@ -1812,12 +1814,10 @@
 
   async function api(method, url, body) {
     try {
-      const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, ...(body!==undefined?{body:JSON.stringify(body)}:{}) });
-      const isJson = (r.headers.get('content-type') || '').includes('application/json');
-      const payload = isJson ? await r.json() : null;
-      if (!r.ok) {
-        if (r.status !== 400) toast(`Erro ${r.status} em ${method} ${url}`);
-        return payload ?? { error: `Erro ${r.status}` };
+      const { ok, status, payload } = await window.PlantaoShared.api(method, url, body);
+      if (!ok) {
+        if (status !== 400) toast(`Erro ${status} em ${method} ${url}`);
+        return payload ?? { error: `Erro ${status}` };
       }
       return payload ?? {};
     } catch (e) {
@@ -1831,7 +1831,7 @@
     return 'Chegou às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
   }
   function fmtDate(iso)   { return new Date(iso+'Z').toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
-  function esc(s)         { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  const esc = window.PlantaoShared.escapeHtml;
   function toast(msg) {
     const el = document.createElement('div'); el.className='toast'; el.textContent=msg; el.setAttribute('role','status');
     document.getElementById('toast-zone').appendChild(el);
@@ -1946,18 +1946,6 @@
   }
   init();
 </script>
-
-<!-- Crop Modal -->
-<div id="crop-modal" role="dialog" aria-modal="true" aria-label="Recortar foto">
-  <div class="crop-box">
-    <h3>Recortar foto</h3>
-    <div class="crop-area"><img id="crop-img" src="" alt="" /></div>
-    <div class="crop-actions">
-      <button class="btn" onclick="closeCropper()" style="background:rgba(255,255,255,.08);color:#fff">Cancelar</button>
-      <button class="btn btn-primary" onclick="confirmCrop()">Confirmar</button>
-    </div>
-  </div>
-</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <script>

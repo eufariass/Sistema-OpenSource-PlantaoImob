@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Chegada do Corretor - Geum</title>
+  <title>Chegada do Corretor - Imob OpenSource</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/theme.css" />
   <style>
     :root {
       --bg: #0d0f1b;
@@ -168,7 +169,7 @@
 </head>
 <body>
   <main class="app">
-    <img src="/logo-white.png" alt="Imobiliaria Geum" class="logo" />
+    <img src="/logo-white.png" alt="Imob OpenSource" class="logo" />
     <h1>Presença via QR Code</h1>
     <p class="subtitle">Use esta tela para registrar presença, saída e retorno conforme o fluxo do plantão.</p>
 
@@ -219,6 +220,7 @@
     <div id="status" class="status info"></div>
   </main>
 
+<script src="/shared/client.js"></script>
 <script>
     const STORAGE_KEY = 'mobile_broker_session_v2';
     let brokers = [];
@@ -232,15 +234,7 @@
       el.className = 'status ' + (tone || 'info');
     }
 
-    async function api(method, url, body) {
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        ...(body !== undefined ? { body: JSON.stringify(body) } : {})
-      });
-      const payload = await response.json().catch(() => ({}));
-      return { ok: response.ok, status: response.status, payload };
-    }
+    const api = window.PlantaoShared.api;
 
     function nowAsDbLikeString() {
       const now = new Date();
@@ -531,13 +525,7 @@
       document.getElementById('account-sub').textContent = `${label} no plantão ${shiftLabel}.`;
     }
 
-    function escapeHtml(s) {
-      return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
+    const escapeHtml = window.PlantaoShared.escapeHtml;
 
     session = loadSession();
     renderScreenState();

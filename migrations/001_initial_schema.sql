@@ -1,3 +1,8 @@
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  id TEXT PRIMARY KEY,
+  applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS external_shifts (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
@@ -61,5 +66,3 @@ CREATE TABLE IF NOT EXISTS leads (
   sent_at TIMESTAMPTZ DEFAULT NOW(),
   status TEXT DEFAULT 'novo'
 );
-
-ALTER TABLE broker_attendance ADD COLUMN IF NOT EXISTS assigned_shift TEXT DEFAULT NULL;

@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plantão — Imobiliaria Geum</title>
+  <title>Plantão — Imob OpenSource</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/shared/theme.css" />
   <style>
     :root {
       --bg:        #06060f;
@@ -442,7 +443,7 @@
 </div>
 
 <header role="banner">
-  <img src="/logo-white.png" alt="Imobiliaria Geum" class="logo-img" id="header-logo" />
+  <img src="/logo-white.png" alt="Imob OpenSource" class="logo-img" id="header-logo" />
   <div class="header-center">Sistema de Plantão</div>
   <div style="display:flex;align-items:center;gap:16px">
 <button class="btn-fullscreen" id="btn-fs" onclick="toggleFullscreen()" aria-label="Tela cheia" title="Tela cheia">
@@ -515,11 +516,12 @@
 </div>
 
 <footer role="contentinfo">
-  <span>Imobiliaria Geum</span>
+  <span>Imob OpenSource</span>
   <span id="footer-date"></span>
   <span>Plantão de Corretores</span>
 </footer>
 
+<script src="/shared/client.js"></script>
 <script>
   let queue = [], externalQueues = [], brokers = [];
 
@@ -941,7 +943,7 @@
     if (!connected) connect();
   }
 
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  const esc = window.PlantaoShared.escapeHtml;
 
   function toggleFullscreen() {
     if (!document.fullscreenElement) {

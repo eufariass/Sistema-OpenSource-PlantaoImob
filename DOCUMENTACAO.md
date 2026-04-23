@@ -1,6 +1,6 @@
-# Sistema de Plantão — Geum Imobiliária
+# Sistema de Plantão — Imob OpenSource
 
-Documentação técnica e funcional completa do sistema de distribuição de leads entre corretores da Imobiliária Geum.
+Documentação técnica e funcional completa do sistema de distribuição de leads entre corretores da Imob OpenSource.
 
 ---
 

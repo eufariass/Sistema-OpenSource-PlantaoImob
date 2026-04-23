@@ -1,11 +1,12 @@
-const db = require('../db');
+const { withApiHandler } = require('../src/http/handler');
+const { loadTvData } = require('../src/services/tv-data-service');
 
 const DEFAULT_TTL_MS = process.env.VERCEL ? 0 : 15000;
 const TTL_MS = Math.max(0, Number(process.env.TV_DATA_CACHE_TTL_MS || DEFAULT_TTL_MS));
 const STALE_MS = 120000;
 let cache = { data: null, ts: 0 };
 
-module.exports = async (req, res) => {
+module.exports = withApiHandler('api/tv-data', async (req, res) => {
   if (req.method !== 'GET') return res.status(405).end();
   const now = Date.now();
   const age = now - cache.ts;
@@ -20,21 +21,13 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const [queue, externalQueues, stats, drops_hoje, settings, brokers] = await Promise.all([
-      db.getQueue(),
-      db.getExternalQueues(),
-      db.getStats(),
-      db.getDropsHoje(),
-      db.getSettings(),
-      db.getBrokers(),
-    ]);
-    const payload = { queue, externalQueues, stats, drops_hoje, settings, brokers };
+    const payload = await loadTvData();
     cache = { data: payload, ts: now };
     res.json({ ...payload, _cache: 'miss' });
   } catch (e) {
     if (cache.data && age < STALE_MS) {
-      return res.json({ ...cache.data, _cache: 'stale', _stale_error: e.message });
+      return res.json({ ...cache.data, _cache: 'stale', _stale_error: 'stale_data_fallback' });
     }
-    res.status(500).json({ error: e.message });
+    throw e;
   }
-};
+});

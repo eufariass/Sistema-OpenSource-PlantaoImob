@@ -67,7 +67,7 @@ function looksLikeServiceAccount(row) {
 
   const blockedTerms = [
     'adm', 'administr', 'financeiro', 'juridico', 'locacao', 'relacionamento',
-    'prospeccao', 'inteligencia', 'grupo', 'geum imob', 'geum', 'partners',
+    'prospeccao', 'inteligencia', 'grupo', 'imob opensource', 'imob', 'partners',
     'credit', 'nucleo', 'imob', 'teste', 'fora da casa',
   ];
 

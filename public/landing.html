@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Imob OpenSource | O futuro da gestão de plantão imobiliário</title>
+  <meta name="description" content="Sistema open-source de alta performance para gestão de filas, presença e distribuição de leads em tempo real." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg: #030303;
+      --card: rgba(255, 255, 255, 0.03);
+      --card-hover: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-bright: rgba(255, 255, 255, 0.15);
+      --text: #ffffff;
+      --text-muted: #a1a1aa;
+      --accent: #6366f1;
+      --accent-soft: rgba(99, 102, 241, 0.15);
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --radius: 12px;
+      --radius-lg: 24px;
+      --font: 'Inter', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    html { scroll-behavior: smooth; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* --- Background Effects --- */
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: -1;
+      background: 
+        radial-gradient(circle at 10% 10%, var(--accent-soft) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
+      opacity: 0.6;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 50px 50px;
+      mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+      opacity: 0.2;
+    }
+
+    /* --- Layout --- */
+    .container {
+      width: min(1200px, 90vw);
+      margin: 0 auto;
+    }
+
+    /* --- Animations --- */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .reveal {
+      opacity: 0;
+      animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border-bright);
+    }
+
+    .btn-outline:hover {
+      background: var(--card);
+      border-color: var(--text);
+    }
+
+    /* --- Hero --- */
+    .hero {
+      padding: 120px 0 100px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 6px 16px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(40px, 6vw, 84px);
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -3px;
+      margin-bottom: 24px;
+      background: linear-gradient(to bottom, #fff 40%, rgba(255, 255, 255, 0.5));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: clamp(18px, 1.5vw, 22px);
+      color: var(--text-muted);
+      max-width: 700px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    /* --- Hero Image --- */
+    .hero-viz {
+      margin-top: 80px;
+      position: relative;
+      perspective: 1000px;
+    }
+
+    .viz-card {
+      background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      aspect-ratio: 16/9;
+      max-width: 1000px;
+      margin: 0 auto;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+      overflow: hidden;
+      position: relative;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .viz-header {
+      height: 40px;
+      background: rgba(255,255,255,0.05);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+    }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border-bright); }
+
+    .viz-content {
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 32px;
+      height: 100%;
+    }
+
+    .viz-sidebar {
+      background: rgba(255,255,255,0.02);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .viz-main {
+      display: grid;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .viz-row {
+      background: rgba(255,255,255,0.02);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+    }
+
+    .viz-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); border: 1px solid var(--accent); }
+    .viz-line { height: 8px; border-radius: 4px; background: var(--border); width: 100px; }
+
+    /* --- Features --- */
+    .features { padding: 100px 0; }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .section-header h2 {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      padding: 40px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-bright);
+      background: var(--card-hover);
+      transform: translateY(-5px);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--accent-soft);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      margin-bottom: 24px;
+    }
+
+    .feature-card h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    /* --- Ecosystem (3 Screens) --- */
+    .ecosystem {
+      padding: 100px 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .eco-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 40px;
+      margin-top: 60px;
+    }
+
+    .eco-item {
+      text-align: center;
+    }
+
+    .eco-viz {
+      width: 100%;
+      aspect-ratio: 1;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .eco-viz i {
+      width: 64px;
+      height: 64px;
+      color: var(--accent);
+    }
+
+    .eco-viz::after {
+      content: '';
+      position: absolute;
+      inset: -10px;
+      border-radius: 50%;
+      border: 1px dashed var(--border);
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* --- CTA --- */
+    .cta-section {
+      padding: 150px 0;
+      text-align: center;
+    }
+
+    .cta-box {
+      padding: 80px 40px;
+      background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%);
+      border-radius: var(--radius-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-box h2 {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+
+    .cta-box p {
+      color: rgba(255,255,255,0.8);
+      font-size: 20px;
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .cta-box .btn-primary {
+      background: #fff;
+      color: var(--accent);
+      font-size: 16px;
+      padding: 16px 32px;
+    }
+
+    /* --- Footer --- */
+    footer {
+      padding: 80px 0 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr repeat(3, 1fr);
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+
+    .footer-brand p {
+      color: var(--text-muted);
+      margin-top: 16px;
+      max-width: 250px;
+    }
+
+    .footer-col h4 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 12px; }
+    .footer-col ul li a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+    .footer-col ul li a:hover { color: var(--text); }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 40px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .hero-viz { display: none; }
+      h1 { letter-spacing: -1.5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="bg-grid"></div>
+
+  <header class="container hero">
+    <div class="reveal delay-1">
+      <div class="badge">
+        <i data-lucide="github" style="width:14px;"></i>
+        100% Livre e Open Source
+      </div>
+    </div>
+    <h1 class="reveal delay-2">Gestão de plantão<br>redefinida para todos</h1>
+    <p class="reveal delay-3">O sistema open-source mais completo para gerenciar filas, presença e distribuição de leads. Transparência, tempo real e automação em uma única plataforma.</p>
+    <div class="hero-actions reveal delay-4">
+      <a href="/admin" class="btn btn-primary" style="padding: 14px 28px; font-size: 16px;">
+        Acessar Painel Admin
+        <i data-lucide="arrow-right" style="width:18px;"></i>
+      </a>
+      <a href="/tv" class="btn btn-outline" style="padding: 14px 28px; font-size: 16px;">
+        Ver Modo TV
+      </a>
+    </div>
+
+    <div class="hero-viz reveal" style="animation-delay: 0.6s;">
+      <div class="viz-card">
+        <div class="viz-header">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          <div style="margin-left: auto; font-size: 11px; color: var(--text-muted);">imob-opensource.live/admin</div>
+        </div>
+        <div class="viz-content">
+          <div class="viz-sidebar"></div>
+          <div class="viz-main">
+            <div class="viz-row">
+              <div class="viz-avatar"></div>
+              <div class="viz-line"></div>
+              <div class="viz-line" style="width: 60px; opacity: 0.5;"></div>
+            </div>
+            <div class="viz-row">
+              <div class="viz-avatar" style="background: rgba(255,255,255,0.05); border-color: var(--border);"></div>
+              <div class="viz-line" style="width: 120px;"></div>
+            </div>
+            <div class="viz-row">
+              <div class="viz-avatar"></div>
+              <div class="viz-line" style="width: 80px;"></div>
+              <div class="viz-line" style="width: 40px; opacity: 0.5;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="funcionalidades" class="container features">
+    <div class="section-header reveal">
+      <h2>Poderoso por padrão</h2>
+      <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Tudo o que você precisa para uma operação de vendas imobiliária profissional, sem custos de licenciamento.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card reveal delay-1">
+        <div class="feature-icon"><i data-lucide="zap"></i></div>
+        <h3>Tempo Real Nativo</h3>
+        <p>Atualizações instantâneas via WebSocket. Quando um lead chega ou a fila muda, todos vêem no mesmo segundo.</p>
+      </div>
+      <div class="feature-card reveal delay-2">
+        <div class="feature-icon"><i data-lucide="users"></i></div>
+        <h3>Fila Inteligente</h3>
+        <p>Algoritmos de ordenação baseados em janelas de tempo, sorteios e regras de plantão externo configuráveis.</p>
+      </div>
+      <div class="feature-card reveal delay-3">
+        <div class="feature-icon"><i data-lucide="bar-chart-3"></i></div>
+        <h3>Insights de Performance</h3>
+        <p>Relatórios detalhados de recebimento de leads por corretor, dia, semana e mês para decisões baseadas em dados.</p>
+      </div>
+      <div class="feature-card reveal delay-1">
+        <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+        <h3>Segurança Integrada</h3>
+        <p>Controle de acesso administrativo, proteção de endpoints e integridade de dados garantida por migrações versionadas.</p>
+      </div>
+      <div class="feature-card reveal delay-2">
+        <div class="feature-icon"><i data-lucide="smartphone"></i></div>
+        <h3>Mobile First</h3>
+        <p>Interface dedicada para corretores registrarem presença e saídas direto do smartphone com simplicidade máxima.</p>
+      </div>
+      <div class="feature-card reveal delay-3">
+        <div class="feature-icon"><i data-lucide="layout-template"></i></div>
+        <h3>Multi-Plantão</h3>
+        <p>Gerencie simultaneamente o plantão principal da sede e múltiplos plantões externos em um só lugar.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="ecossistema" class="ecosystem">
+    <div class="container">
+      <div class="section-header reveal">
+        <h2>Um ecossistema completo</h2>
+        <p style="color: var(--text-muted);">Três interfaces trabalhando em perfeita sincronia para sua imobiliária.</p>
+      </div>
+      <div class="eco-grid">
+        <div class="eco-item reveal delay-1">
+          <div class="eco-viz"><i data-lucide="settings"></i></div>
+          <h3>Painel Admin</h3>
+          <p style="color: var(--text-muted); margin-top: 12px;">O cérebro do sistema. Gerencie corretores, configure plantões e distribua leads com total controle.</p>
+        </div>
+        <div class="eco-item reveal delay-2">
+          <div class="eco-viz"><i data-lucide="monitor"></i></div>
+          <h3>Modo TV</h3>
+          <p style="color: var(--text-muted); margin-top: 12px;">Aumente o engajamento da equipe com um dashboard público de alta visibilidade para o escritório.</p>
+        </div>
+        <div class="eco-item reveal delay-3">
+          <div class="eco-viz"><i data-lucide="smartphone"></i></div>
+          <h3>App de Presença</h3>
+          <p style="color: var(--text-muted); margin-top: 12px;">Sem apps pesados. Uma web-app leve para o corretor registrar entrada, almoço e saída em segundos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container cta-section reveal">
+    <div class="cta-box">
+      <h2>Pronto para profissionalizar seu plantão?</h2>
+      <p>Junte-se ao movimento open-source e tenha controle total sobre sua operação de vendas.</p>
+      <div class="hero-actions">
+        <a href="/admin" class="btn btn-primary">Começar Agora</a>
+        <a href="https://github.com" class="btn btn-outline" style="color: white; border-color: rgba(255,255,255,0.3);">Contribuir no GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="logo">
+          <div class="logo-icon"><i data-lucide="blocks" style="width:18px; color:white;"></i></div>
+          Imob OpenSource
+        </a>
+        <p>O sistema livre para gestão imobiliária moderna.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Plataforma</h4>
+        <ul>
+          <li><a href="/admin">Admin</a></li>
+          <li><a href="/tv">TV</a></li>
+          <li><a href="/mobile">Mobile</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Recursos</h4>
+        <ul>
+          <li><a href="#funcionalidades">Funcionalidades</a></li>
+          <li><a href="#ecossistema">Ecossistema</a></li>
+          <li><a href="/api/health">Status da API</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Comunidade</h4>
+        <ul>
+          <li><a href="https://github.com">GitHub</a></li>
+          <li><a href="https://github.com">Documentação</a></li>
+          <li><a href="https://github.com">Contribuir</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>&copy; 2026 Imob OpenSource. Sob licença MIT.</div>
+      <div style="display:flex; gap: 20px;">
+        <a href="#" style="color: inherit; text-decoration: none;">Privacidade</a>
+        <a href="#" style="color: inherit; text-decoration: none;">Termos</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Scroll Reveal Animation
+    const observerOptions = {
+      threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

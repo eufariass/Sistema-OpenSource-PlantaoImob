@@ -4,6 +4,9 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const db = require('./db');
+const { requireAdmin } = require('./src/http/auth');
+const { errorResponse } = require('./src/http/errors');
+const { loadTvData } = require('./src/services/tv-data-service');
 
 const app = express();
 const server = http.createServer(app);
@@ -11,9 +14,21 @@ const wss = new WebSocket.Server({ server });
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/api', (req, res, next) => {
+  const publicWritePaths = new Set([
+    '/attendance/check-in',
+    '/attendance/checkout',
+    '/attendance/return',
+  ]);
+  if (publicWritePaths.has(req.path)) return next();
+  if (!requireAdmin(req, res)) return;
+  next();
+});
 
 app.get('/mobile', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'mobile.html')));
 app.get('/tv', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'tv.html')));
+app.get('/landing', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'landing.html')));
+app.get('/admin', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // ─────────── WebSocket Broadcast (fire-and-forget) ───────────
 
@@ -73,7 +88,7 @@ app.get('/api/realtime-config', async (_req, res) => {
 
 app.get('/api/settings', async (req, res) => {
   try { res.json(await db.getSettings()); }
-  catch (e) { res.status(500).json({ error: e.message }); }
+  catch (e) { errorResponse(res, 500, 'internal_error', 'Erro interno do servidor'); }
 });
 
 app.put('/api/settings', async (req, res) => {
@@ -92,7 +107,7 @@ app.put('/api/plantonistas', async (req, res) => {
     res.json({ success: true, plantonistas: saved.plantonistas || [] });
   } catch (e) {
     console.error('PUT /api/plantonistas error:', e.message);
-    res.status(500).json({ error: e.message });
+    errorResponse(res, 500, 'internal_error', 'Erro interno do servidor');
   }
 });
 
@@ -182,7 +197,7 @@ app.get('/api/attendance/insights', async (req, res) => {
   try {
     res.json(await db.getAttendanceInsights(req.query.month));
   } catch (e) {
-    res.status(400).json({ error: e.message });
+    errorResponse(res, 400, 'invalid_month', e.message || 'Mês inválido');
   }
 });
 
@@ -380,7 +395,15 @@ app.get('/api/drops', async (req, res) => {
 
 app.get('/api/stats', async (req, res) => {
   try { res.json(await db.getStats()); }
-  catch (e) { res.status(500).json({ error: e.message }); }
+  catch (e) { errorResponse(res, 500, 'internal_error', 'Erro interno do servidor'); }
+});
+
+app.get('/api/tv-data', async (_req, res) => {
+  try {
+    res.json(await loadTvData());
+  } catch (e) {
+    errorResponse(res, 500, 'internal_error', 'Erro interno do servidor');
+  }
 });
 
 // ─────────── Health ───────────
@@ -399,7 +422,7 @@ app.get('/api/health', async (req, res) => {
       },
     });
   } catch (e) {
-    res.status(500).json({ status: 'error', message: e.message });
+    res.status(500).json({ status: 'error', message: 'internal_error' });
   }
 });
 
@@ -407,7 +430,7 @@ app.get('/api/health', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`\n🏢 Sistema de Plantão - Geum Imobiliária`);
+  console.log(`\n🏢 Sistema de Plantão - Imob OpenSource`);
   console.log(`\n  Admin:  http://localhost:${PORT}`);
   console.log(`  TV:     http://localhost:${PORT}/tv.html\n`);
 });

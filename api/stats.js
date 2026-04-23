@@ -1,11 +1,8 @@
 const db = require('../db');
+const { withApiHandler } = require('../src/http/handler');
+const { errorResponse } = require('../src/http/errors');
 
-module.exports = async (req, res) => {
-  try {
-    if (req.method !== 'GET') return res.status(405).end();
-    res.json(await db.getStats());
-  } catch (e) {
-    console.error('stats error:', e.message);
-    res.status(500).json({ error: e.message });
-  }
-};
+module.exports = withApiHandler('api/stats', async (req, res) => {
+  if (req.method !== 'GET') return errorResponse(res, 405, 'method_not_allowed', 'Método não permitido');
+  res.json(await db.getStats());
+});

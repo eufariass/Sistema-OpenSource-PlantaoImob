@@ -1,11 +1,13 @@
-module.exports = async (req, res) => {
+const { withApiHandler } = require('../src/http/handler');
+
+module.exports = withApiHandler('api/health', async (req, res) => {
   const dbUrl = process.env.DATABASE_URL || '';
   const deep = req.query?.deep === '1';
 
   const result = {
     status: 'ok',
     env: {
-      database_url: dbUrl ? dbUrl.substring(0, 28) + '...' : 'MISSING',
+      database_url_configured: Boolean(dbUrl),
     },
     node_version: process.version,
     timestamp: new Date().toISOString(),
@@ -31,8 +33,8 @@ module.exports = async (req, res) => {
     result.settings_keys = Object.keys(settings);
   } catch (e) {
     result.status = 'db_error';
-    result.error = e.message;
+    result.error = 'database_unavailable';
   }
 
   res.json(result);
-};
+});

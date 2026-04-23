@@ -3,6 +3,8 @@
     { "source": "/logo-white.png",  "destination": "/public/logo-white.png" },
     { "source": "/logo-black.png",  "destination": "/public/logo-black.png" },
     { "source": "/lead-sound.mp3",  "destination": "/public/lead-sound.mp3" },
+    { "source": "/landing",         "destination": "/public/landing.html" },
+    { "source": "/admin",           "destination": "/public/index.html" },
     { "source": "/mobile",          "destination": "/public/mobile.html" },
     { "source": "/tv.html",         "destination": "/public/tv.html" },
     { "source": "/",                "destination": "/public/index.html" }

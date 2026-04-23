@@ -33,15 +33,7 @@ async function query(text, params) {
 }
 
 async function ensureAttendanceSchema() {
-  if (!attendanceSchemaReadyPromise) {
-    attendanceSchemaReadyPromise = query(
-      `ALTER TABLE broker_attendance
-       ADD COLUMN IF NOT EXISTS assigned_shift TEXT DEFAULT NULL`
-    ).catch(err => {
-      attendanceSchemaReadyPromise = null;
-      throw err;
-    });
-  }
+  if (!attendanceSchemaReadyPromise) attendanceSchemaReadyPromise = Promise.resolve(true);
   return attendanceSchemaReadyPromise;
 }
 
