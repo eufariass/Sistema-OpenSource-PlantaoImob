@@ -4,6 +4,12 @@ Aplicacao web para gestao de plantao e distribuicao de leads em imobiliaria, com
 
 Projeto desenvolvido para organizar a rotina diaria de corretores, reduzir atrito na distribuicao e dar visibilidade do fluxo em tempo real.
 
+
+## Landing Page
+
+- <img width="1076" height="904" alt="Print" src="https://github.com/user-attachments/assets/5864ea17-9f17-421f-aef6-eda88174a809" />
+
+
 ## Demo do projeto
 
 - **Admin:** `http://localhost:3000/`
