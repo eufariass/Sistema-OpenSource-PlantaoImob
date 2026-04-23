@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Chegada do Corretor - Geum</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d0f1b;
+      --card: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.16);
+      --text: #f7f8fc;
+      --muted: #adb4c7;
+      --primary: #4f7cff;
+      --primary-strong: #3e68e8;
+      --ok: #19b474;
+      --danger: #e24f66;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: "Inter", sans-serif;
+      color: var(--text);
+      background: radial-gradient(100% 100% at 15% 10%, #1f2444 0%, var(--bg) 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .logo {
+      width: 132px;
+      height: auto;
+      display: block;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: 24px;
+      letter-spacing: -0.4px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 18px;
+    }
+
+    .label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+    }
+
+    select, button {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-family: inherit;
+    }
+
+    select {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      padding: 13px 12px;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    button {
+      background: var(--primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 13px 12px;
+      cursor: pointer;
+      transition: background 0.16s ease;
+    }
+    button:hover { background: var(--primary-strong); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn-danger {
+      background: rgba(226, 79, 102, 0.18);
+      border-color: rgba(226, 79, 102, 0.35);
+      color: #ffd5dc;
+    }
+    .btn-danger:hover { background: rgba(226, 79, 102, 0.28); }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border);
+      color: var(--text);
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.16); }
+
+    .hidden { display: none; }
+
+    .account-box {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .account-name {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .account-sub {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .shift-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(79, 124, 255, 0.16);
+      border: 1px solid rgba(79, 124, 255, 0.28);
+      color: #dbe6ff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status {
+      margin-top: 14px;
+      min-height: 20px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .status.ok { color: #7bedbc; }
+    .status.error { color: #ff90a1; }
+    .status.info { color: var(--muted); }
+
+    .meta {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <img src="/logo-white.png" alt="Imobiliaria Geum" class="logo" />
+    <h1>Presença via QR Code</h1>
+    <p class="subtitle">Use esta tela para registrar presença, saída e retorno conforme o fluxo do plantão.</p>
+
+    <section id="logged-out-section">
+      <label class="label" for="broker-select">Corretor</label>
+      <select id="broker-select">
+        <option value="">Carregando corretores...</option>
+      </select>
+      <label class="label" for="shift-select">Plantão</label>
+      <select id="shift-select">
+        <option value="">Carregando plantões...</option>
+      </select>
+      <button id="checkin-btn" type="button" onclick="checkIn()">Registrar presença</button>
+    </section>
+
+    <section id="logged-in-section" class="hidden">
+      <div class="account-box">
+        <div id="account-name" class="account-name">-</div>
+        <div id="account-sub" class="account-sub">Você está com presença ativa hoje.</div>
+        <div id="account-shift" class="shift-pill">Plantão: Souza Naves</div>
+      </div>
+      <label class="label" for="exit-reason">Motivo da saída</label>
+      <select id="exit-reason">
+        <option value="">Selecione o motivo</option>
+        <option value="atendimento">Atendimento</option>
+        <option value="nao_volto">Não volto</option>
+        <option value="almoco_retorno">Almoço e retorno</option>
+      </select>
+      <button id="leave-btn" type="button" class="btn-danger" onclick="checkout()">Confirmar saída</button>
+      <button type="button" class="btn-secondary" onclick="switchBroker()">Trocar corretor</button>
+    </section>
+
+    <section id="return-section" class="hidden">
+      <div class="account-box">
+        <div id="return-name" class="account-name">-</div>
+        <div id="return-sub" class="account-sub">Selecione o motivo para registrar seu retorno.</div>
+        <div id="return-shift" class="shift-pill">Plantão: Souza Naves</div>
+      </div>
+      <label class="label" for="return-reason">Motivo do retorno</label>
+      <select id="return-reason">
+        <option value="">Selecione o motivo</option>
+        <option value="atendimento">Atendimento</option>
+      </select>
+      <button id="return-btn" type="button" onclick="registerReturn()">Registrar retorno</button>
+      <button type="button" class="btn-secondary" onclick="switchBroker()">Trocar corretor</button>
+    </section>
+
+    <div id="status" class="status info"></div>
+  </main>
+
+<script>
+    const STORAGE_KEY = 'mobile_broker_session_v2';
+    let brokers = [];
+    let shifts = [];
+    let session = null;
+    let attendance = null;
+
+    function setStatus(message, tone) {
+      const el = document.getElementById('status');
+      el.textContent = message || '';
+      el.className = 'status ' + (tone || 'info');
+    }
+
+    async function api(method, url, body) {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {})
+      });
+      const payload = await response.json().catch(() => ({}));
+      return { ok: response.ok, status: response.status, payload };
+    }
+
+    function nowAsDbLikeString() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+    }
+
+    function persistSession() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      } catch {}
+    }
+
+    function loadSession() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed || !parsed.broker_id) return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    }
+
+    function clearSession() {
+      session = null;
+      attendance = null;
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    }
+
+    function switchBroker() {
+      const previousName = session?.broker_name || 'Corretor';
+      clearSession();
+      document.getElementById('broker-select').value = '';
+      document.getElementById('shift-select').value = '__main__';
+      document.getElementById('exit-reason').value = '';
+      document.getElementById('return-reason').value = '';
+      renderScreenState();
+      setStatus(`${previousName} foi removido desta tela. Selecione o corretor correto.`, 'info');
+    }
+
+    function hydrateSessionName() {
+      if (!session?.broker_id || session?.broker_name) return;
+      const found = brokers.find(b => b.id === session.broker_id);
+      if (found) {
+        session.broker_name = found.name;
+        persistSession();
+      }
+    }
+
+    async function loadBrokers() {
+      const sel = document.getElementById('broker-select');
+      try {
+        const { ok, payload } = await api('GET', '/api/brokers');
+        if (!ok || !Array.isArray(payload)) throw new Error('Falha ao carregar corretores');
+        brokers = payload;
+        sel.innerHTML = '<option value="">Selecione seu nome</option>' +
+          brokers.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
+        hydrateSessionName();
+        await refreshAttendance();
+      } catch {
+        sel.innerHTML = '<option value="">Não foi possível carregar</option>';
+        setStatus('Não foi possível carregar os corretores. Tente novamente em instantes.', 'error');
+      }
+    }
+
+    async function loadShifts() {
+      const sel = document.getElementById('shift-select');
+      try {
+        const { ok, payload } = await api('GET', '/api/external-shifts');
+        if (!ok || !Array.isArray(payload)) throw new Error('Falha ao carregar plantões');
+        shifts = payload;
+        sel.innerHTML = [
+          '<option value="__main__">Souza Naves</option>',
+          ...shifts.map(shift => `<option value="${escapeHtml(shift.name)}">${escapeHtml(shift.name)}</option>`)
+        ].join('');
+        if (session?.assigned_shift) {
+          sel.value = session.assigned_shift;
+        } else {
+          sel.value = '__main__';
+        }
+      } catch {
+        sel.innerHTML = '<option value="__main__">Souza Naves</option>';
+      }
+    }
+
+    async function refreshAttendance() {
+      if (!session?.broker_id) {
+        attendance = null;
+        renderScreenState();
+        return;
+      }
+      const { ok, payload } = await api('GET', `/api/attendance/${session.broker_id}`);
+      attendance = ok ? payload : null;
+      if (!attendance && session?.broker_id) {
+        clearSession();
+      }
+      renderScreenState();
+    }
+
+    async function checkIn() {
+      const broker_id = document.getElementById('broker-select').value;
+      const shiftValue = document.getElementById('shift-select').value || '__main__';
+      const selectedShift = shiftValue === '__main__' ? null : shiftValue;
+      const selectedShiftLabel = selectedShift || 'Souza Naves';
+      const btn = document.getElementById('checkin-btn');
+      if (!broker_id) {
+        setStatus('Selecione seu nome antes de registrar presença.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      setStatus('Registrando sua presença...', 'info');
+      try {
+        const { ok, payload } = await api('POST', '/api/attendance/check-in', {
+          broker_id,
+          entered_at: nowAsDbLikeString(),
+          external_shift: selectedShift,
+        });
+        if (!ok) {
+          setStatus(payload?.error || 'Não foi possível registrar a presença.', 'error');
+          return;
+        }
+        const brokerName = brokers.find(b => b.id === broker_id)?.name || 'Corretor';
+        session = { broker_id, broker_name: brokerName, assigned_shift: selectedShift, assigned_shift_label: selectedShiftLabel };
+        persistSession();
+        attendance = payload.attendance || null;
+        renderScreenState();
+        if (payload.action === 'presence_recorded') {
+          setStatus(`${brokerName}, presença registrada no plantão ${selectedShiftLabel}.`, 'ok');
+        } else if (selectedShift) {
+          setStatus(`${brokerName}, presença registrada. Você entrou no plantão ${selectedShiftLabel}.`, 'ok');
+        } else if (payload.queue_rule === 'lottery_window') {
+          setStatus(`${brokerName}, presença registrada. Você entrou na roleta do plantão.`, 'ok');
+        } else {
+          setStatus(`${brokerName}, presença registrada. Você entrou na sequência da fila.`, 'ok');
+        }
+      } catch {
+        setStatus('Erro de rede ao registrar presença. Tente novamente.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function checkout() {
+      if (!session?.broker_id) return;
+      const reason = document.getElementById('exit-reason').value;
+      const btn = document.getElementById('leave-btn');
+      if (!reason) {
+        setStatus('Selecione o motivo da saída.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      setStatus('Registrando sua saída...', 'info');
+      try {
+        const { ok, payload } = await api('POST', '/api/attendance/checkout', {
+          broker_id: session.broker_id,
+          reason,
+        });
+        if (!ok) {
+          setStatus(payload?.error || 'Não foi possível registrar a saída.', 'error');
+          return;
+        }
+        attendance = payload.attendance || null;
+        if (reason === 'nao_volto') {
+          const name = session.broker_name || 'Corretor';
+          clearSession();
+          renderScreenState();
+          setStatus(`${name}, sua saída foi registrada. Até amanhã!`, 'ok');
+        } else if (reason === 'almoco_retorno') {
+          const shiftLabel = attendance?.assigned_shift_label || session?.assigned_shift_label || 'Souza Naves';
+          clearSession();
+          renderScreenState();
+          setStatus(`Saída para almoço registrada no plantão ${shiftLabel}. Ao voltar, leia o QR Code novamente para entrar na fila da tarde.`, 'ok');
+        } else {
+          renderScreenState();
+          const shiftLabel = attendance?.assigned_shift_label || session?.assigned_shift_label || 'Souza Naves';
+          setStatus(`Saída para atendimento registrada no plantão ${shiftLabel}. Ao voltar, selecione "Atendimento".`, 'ok');
+        }
+      } catch {
+        setStatus('Erro de rede ao registrar a saída. Tente novamente.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function registerReturn() {
+      if (!session?.broker_id) return;
+      const reason = document.getElementById('return-reason').value;
+      const btn = document.getElementById('return-btn');
+      if (!reason) {
+        setStatus('Selecione o motivo do retorno.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      setStatus('Registrando seu retorno...', 'info');
+      try {
+        const { ok, payload } = await api('POST', '/api/attendance/return', {
+          broker_id: session.broker_id,
+          reason,
+        });
+        if (!ok) {
+          setStatus(payload?.error || 'Não foi possível registrar o retorno.', 'error');
+          return;
+        }
+        attendance = payload.attendance || null;
+        renderScreenState();
+        const shiftLabel = attendance?.assigned_shift_label || session?.assigned_shift_label || 'Souza Naves';
+        if (reason === 'atendimento') {
+          setStatus(`Retorno de atendimento registrado. Você voltou para o plantão ${shiftLabel}.`, 'ok');
+        } else if (reason === 'almoco_retorno') {
+          setStatus(`Retorno de almoço registrado no plantão ${shiftLabel}. O plantão foi dobrado.`, 'ok');
+        } else {
+          clearSession();
+          renderScreenState();
+          setStatus('Saída final confirmada.', 'ok');
+        }
+      } catch {
+        setStatus('Erro de rede ao registrar o retorno. Tente novamente.', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function renderScreenState() {
+      const loggedOut = document.getElementById('logged-out-section');
+      const loggedIn = document.getElementById('logged-in-section');
+      const returning = document.getElementById('return-section');
+
+      if (!session?.broker_id) {
+        loggedOut.classList.remove('hidden');
+        loggedIn.classList.add('hidden');
+        returning.classList.add('hidden');
+        return;
+      }
+
+      const name = session.broker_name || 'Corretor';
+      const status = attendance?.status || 'present_only';
+      const label = attendance?.status_label || 'Presença registrada';
+      const shiftLabel = attendance?.assigned_shift_label || session?.assigned_shift_label || 'Souza Naves';
+      if (attendance) {
+        session.assigned_shift = attendance.assigned_shift || null;
+        session.assigned_shift_label = attendance.assigned_shift_label || 'Souza Naves';
+        persistSession();
+      }
+
+      document.getElementById('account-name').textContent = name;
+      document.getElementById('return-name').textContent = name;
+      document.getElementById('account-shift').textContent = `Plantão: ${shiftLabel}`;
+      document.getElementById('return-shift').textContent = `Plantão: ${shiftLabel}`;
+
+      if (status === 'service') {
+        loggedOut.classList.add('hidden');
+        loggedIn.classList.add('hidden');
+        returning.classList.remove('hidden');
+        document.getElementById('return-sub').textContent = 'Informe o motivo para voltar a participar da distribuição.';
+        return;
+      }
+
+      if (status === 'lunch') {
+        clearSession();
+        loggedOut.classList.remove('hidden');
+        loggedIn.classList.add('hidden');
+        returning.classList.add('hidden');
+        setStatus(`Saída para almoço registrada no plantão ${shiftLabel}. Para voltar à fila da tarde, leia o QR Code novamente.`, 'info');
+        return;
+      }
+
+      if (status === 'gone') {
+        loggedOut.classList.remove('hidden');
+        loggedIn.classList.add('hidden');
+        returning.classList.add('hidden');
+        clearSession();
+        return;
+      }
+
+      loggedOut.classList.add('hidden');
+      loggedIn.classList.remove('hidden');
+      returning.classList.add('hidden');
+      document.getElementById('account-sub').textContent = `${label} no plantão ${shiftLabel}.`;
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    session = loadSession();
+    renderScreenState();
+    loadShifts();
+    loadBrokers();
+    setInterval(refreshAttendance, 15000);
+  </script>
+</body>
+</html>

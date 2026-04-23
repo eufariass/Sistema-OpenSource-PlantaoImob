@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Plantão — Admin Premium</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      /* Deep Dark Premium Aesthetic */
+      --c-bg: #09090b;
+      --c-surface: #18181b;
+      --c-surface-hover: #27272a;
+      --c-border: #27272a;
+      --c-border-focus: #3f3f46;
+      --c-text-primary: #fafafa;
+      --c-text-secondary: #a1a1aa;
+      --c-text-tertiary: #71717a;
+      --c-accent: #6366f1; /* Indigo */
+      --c-accent-hover: #4f46e5;
+      
+      --glow-accent: 0 0 20px rgba(99, 102, 241, 0.4);
+
+      /* Radius & Shadows */
+      --r-sm: 8px;
+      --r-md: 12px;
+      --r-lg: 16px;
+      --r-xl: 24px;
+      
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+      
+      /* Transitions */
+      --t-fast: 150ms ease-out;
+      --t-base: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--c-text-primary);
+      background-color: var(--c-bg);
+      -webkit-font-smoothing: antialiased;
+      /* Subtle noise background */
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+      overflow-x: hidden;
+      margin: 0;
+    }
+
+    /* ── App Shell Layout ── */
+    #app-container {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 260px;
+      background: rgba(9, 9, 11, 0.85);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 50;
+    }
+    .brand {
+      height: 70px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--c-border);
+    }
+    .brand img { height: 28px; }
+    
+    .nav-menu {
+      flex: 1;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--r-md);
+      color: var(--c-text-secondary);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      text-align: left;
+      transition: all var(--t-fast);
+    }
+    .nav-item:hover {
+      background: var(--c-surface-hover);
+      color: var(--c-text-primary);
+    }
+    .nav-item.active {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--c-accent);
+      font-weight: 600;
+      box-shadow: inset 2px 0 0 var(--c-accent);
+    }
+    .nav-item svg { width: 18px; height: 18px; stroke-width: 2.2px; }
+    
+    .sidebar-bottom {
+      padding: 16px;
+      border-top: 1px solid var(--c-border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* ── Main Area ── */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    
+    .topbar {
+      height: 70px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--c-border);
+      background: rgba(24, 24, 27, 0.4);
+      backdrop-filter: blur(12px);
+      z-index: 40;
+    }
+    .topbar-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      color: var(--c-text-primary);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .app-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--c-text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: var(--r-md);
+      transition: background var(--t-fast);
+    }
+    .app-link:hover { background: var(--c-surface); color: var(--c-text-primary); }
+    .app-link svg { width: 14px; height: 14px; }
+    
+    .ws-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--c-text-secondary);
+      background: var(--c-surface);
+      padding: 6px 12px;
+      border-radius: 99px;
+      border: 1px solid var(--c-border);
+    }
+    .ws-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; transition: all 0.3s; flex-shrink:0; }
+    .ws-dot.on { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.6); }
+
+    .content-viewport {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+    }
+    
+    .pane { display: none; animation: fadeIn var(--t-base); }
+    .pane.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ── Dashboard Grid ── */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+
+    /* ── Card Panels ── */
+    .card {
+      background: var(--c-surface);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--c-text-primary);
+      letter-spacing: -0.2px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-body { padding: 20px 24px; }
+    
+    .count-badge {
+      background: var(--c-border);
+      color: var(--c-text-primary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 99px;
+    }
+
+    /* ── The "Next" Hero Banner ── */
+    .hero-banner {
+      background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(99,102,241,0.02) 100%);
+      border: 1px solid rgba(99,102,241,0.4);
+      border-radius: var(--r-xl);
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      box-shadow: var(--glow-accent);
+      position: relative;
+      overflow: hidden;
+      gap: 16px;
+    }
+    .hero-banner::after {
+      content:''; position:absolute; top:0; left:0; right:0; bottom:0;
+      background: radial-gradient(circle at top right, rgba(99,102,241,0.2), transparent 50%);
+      pointer-events: none;
+    }
+    .next-info { display: flex; align-items: center; gap: 20px; z-index: 1; }
+    .next-pulse {
+      width: 56px; height: 56px; flex-shrink: 0;
+      background: var(--c-accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+      animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(99,102,241, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(99,102,241, 0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241, 0); } }
+    .next-pulse svg { color: #fff; width: 28px; height: 28px; stroke-width: 2px; }
+    
+    .next-labels { display: flex; flex-direction: column; }
+    .next-subtitle { font-size: 12px; color: var(--c-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .next-name { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    
+    .next-empty {
+      background: rgba(255,255,255,0.02);
+      border: 1px dashed var(--c-border-focus);
+      border-radius: var(--r-xl);
+      padding: 32px;
+      text-align: center;
+      margin-bottom: 24px;
+      color: var(--c-text-tertiary);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 18px; border-radius: var(--r-sm); border: none; cursor: pointer;
+      font: 600 13px/1 'Inter',sans-serif;
+      transition: all var(--t-fast);
+      outline: none; text-decoration: none;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none !important; }
+    
+    .btn-primary {
+      background: var(--c-accent); color: #fff;
+      box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--c-accent-hover); box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    }
+    
+    /* Huge send lead button */
+    .btn-huge {
+      font-size: 16px; padding: 18px 32px; border-radius: var(--r-md);
+      z-index: 1; flex-shrink: 0;
+    }
+
+    .btn-secondary {
+      background: var(--c-surface-hover); color: var(--c-text-primary);
+      border: 1px solid var(--c-border-focus);
+    }
+    .btn-secondary:hover { background: var(--c-border); color: #fff; }
+
+    .btn-ghost { background: transparent; color: var(--c-text-secondary); width: auto; padding: 8px; border-radius: var(--r-sm); }
+    .btn-ghost:hover { background: var(--c-surface-hover); color: var(--c-text-primary); }
+    
+    .btn-danger-ghost { background: transparent; color: var(--c-text-tertiary); width: auto; padding: 8px; border-radius: var(--r-sm); display: inline-flex; align-items:center; gap:6px; cursor:pointer;}
+    .btn-danger-ghost:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+    /* ── Forms ── */
+    .form-row { margin-bottom: 16px; width: 100%; }
+    .field-label { display: block; font-size: 12px; font-weight: 600; color: var(--c-text-secondary); margin-bottom: 8px; }
+    select, input[type="text"], input[type="time"], input[type="color"] {
+      width: 100%; padding: 12px 16px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-md);
+      color: var(--c-text-primary);
+      font: 500 14px 'Inter', sans-serif;
+      transition: all var(--t-fast);
+      appearance: none; -webkit-appearance: none;
+    }
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; cursor: pointer;
+    }
+    select:focus, input[type="text"]:focus, input[type="time"]:focus {
+      border-color: var(--c-accent); outline: none;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    input[type="color"] { padding: 4px; height: 46px; cursor: pointer; }
+    
+    .inline-form {
+      display: flex; gap: 12px; align-items: flex-end;
+      background: rgba(0,0,0,0.1); padding: 16px; border-radius: var(--r-md); border: 1px dashed var(--c-border-focus);
+      margin-bottom: 16px;
+    }
+    .inline-form .form-row { margin-bottom: 0; flex: 1; }
+
+    .time-toggle-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-text-secondary); cursor: pointer; user-select: none; margin-top: 10px; }
+    .time-toggle-row input { accent-color: var(--c-accent); cursor: pointer; width: 14px; height: 14px; margin: 0; }
+    #time-field { display: none; margin-top: 12px; }
+
+    /* ── Queue & Lists ── */
+    .queue-list { display: flex; flex-direction: column; }
+    .queue-empty { padding: 40px 20px; text-align: center; color: var(--c-text-tertiary); font-size: 13px; font-weight: 500; }
+    
+    .queue-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 20px; border-bottom: 1px solid var(--c-border);
+      background: transparent; transition: background var(--t-fast);
+      position: relative;
+    }
+    .queue-item:hover { background: var(--c-surface-hover); }
+    .queue-item:last-child { border-bottom: none; }
+    
+    .queue-item.is-first {
+      background: rgba(99, 102, 241, 0.04);
+    }
+    .queue-item.is-first .pos-num {
+      background: var(--c-accent); color: #fff; border-color: var(--c-accent);
+    }
+
+    .pos-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--c-surface-hover); color: var(--c-text-secondary);
+      border: 1px solid var(--c-border-focus);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .queue-info { flex: 1; min-width: 0; }
+    .queue-name { font-size: 14px; font-weight: 600; color: var(--c-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 8px; }
+    .queue-meta { font-size: 11px; color: var(--c-text-tertiary); margin-top: 4px; }
+    
+    .ext-badge {
+      font-size: 9px; font-weight: 700; text-transform: uppercase;
+      background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; color: var(--c-text-secondary);
+    }
+    
+    .drag-handle { color: var(--c-text-tertiary); cursor: grab; padding: 4px; }
+    .drag-handle:hover { color: var(--c-text-primary); }
+
+    .queue-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    
+    /* Attendance specific */
+    .attendance-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--c-border);
+    }
+    .attendance-item:last-child { border-bottom: none; }
+    .attendance-avatar {
+      width: 36px; height: 36px; border-radius: 50%; background: var(--c-border-focus);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; overflow: hidden; flex-shrink:0;
+    }
+    .attendance-main { flex: 1; min-width:0; }
+    .attendance-name { font-weight: 600; font-size: 13px; color: var(--c-text-primary); }
+    .attendance-meta { font-size: 11px; color: var(--c-text-tertiary); }
+    .attendance-chip {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      padding: 4px 8px; border-radius: 6px; white-space: nowrap; border: 1px solid transparent;
+    }
+    .attendance-chip.waiting { background: rgba(34, 197, 94, 0.1); color: #22c55e; border-color: rgba(34,197,94,0.2); }
+    .attendance-chip.present_only { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59,130,246,0.2); }
+    .attendance-chip.service { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border-color: rgba(245,158,11,0.2); }
+    .attendance-chip.lunch { background: rgba(168, 85, 247, 0.1); color: #a855f7; border-color: rgba(168,85,247,0.2); }
+    .attendance-chip.gone, .attendance-chip.absent { background: rgba(239, 68, 68, 0.05); color: #ef4444; border-color: rgba(239,68,68,0.2); }
+    .attendance-item.gone { opacity: 0.5; }
+
+    /* Tracking */
+    .tracking-topbar {
+      display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+      margin-bottom:24px;
+    }
+    .tracking-month-title {
+      font-size: 24px; font-weight: 800; letter-spacing: -0.4px; color: var(--c-text-primary);
+    }
+    .tracking-month-subtitle {
+      font-size: 12px; color: var(--c-text-tertiary); margin-top: 4px;
+    }
+    .tracking-month-nav {
+      display:flex; align-items:center; gap:10px;
+    }
+    .tracking-input {
+      width: 180px; padding: 10px 14px;
+      background: rgba(0,0,0,0.2); border: 1px solid var(--c-border);
+      border-radius: var(--r-md); color: var(--c-text-primary); font: 600 13px 'Inter', sans-serif;
+    }
+    .tracking-kpis {
+      display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom:24px;
+    }
+    .tracking-kpi {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--c-border);
+      border-radius: var(--r-lg);
+      padding: 18px 20px;
+    }
+    .tracking-kpi-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: .9px; color: var(--c-text-tertiary); margin-bottom: 10px;
+    }
+    .tracking-kpi-value {
+      font-size: 30px; font-weight: 800; line-height: 1; color: var(--c-text-primary);
+    }
+    .tracking-kpi-meta {
+      margin-top: 8px; font-size: 12px; color: var(--c-text-secondary);
+    }
+    .tracking-grid {
+      display:grid; grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); gap:24px; align-items:start;
+    }
+    .tracking-calendar {
+      display:grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px;
+      padding: 20px 24px 24px;
+    }
+    .calendar-weekday {
+      font-size: 11px; font-weight: 700; color: var(--c-text-tertiary); text-transform: uppercase; letter-spacing: .8px;
+      padding: 0 4px 6px;
+    }
+    .calendar-day {
+      min-height: 138px; border: 1px solid var(--c-border); border-radius: var(--r-md);
+      background: rgba(255,255,255,0.015); padding: 12px; display:flex; flex-direction:column; gap:10px;
+    }
+    .calendar-day.muted {
+      opacity: .35; background: rgba(255,255,255,0.01);
+    }
+    .calendar-day.has-presence {
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow: inset 0 0 0 1px rgba(99,102,241,0.08);
+    }
+    .calendar-day-head {
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .calendar-day-number {
+      font-size: 15px; font-weight: 800; color: var(--c-text-primary);
+    }
+    .calendar-day-badge {
+      font-size: 10px; font-weight: 700; color: var(--c-accent); background: rgba(99,102,241,0.12);
+      border: 1px solid rgba(99,102,241,0.18); border-radius: 999px; padding: 3px 7px;
+    }
+    .calendar-day-list {
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .calendar-person {
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      font-size: 12px; color: var(--c-text-secondary);
+    }
+    .calendar-person-name {
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color: var(--c-text-primary);
+    }
+    .calendar-person-chip {
+      flex-shrink:0; font-size: 10px; font-weight: 700; border-radius: 999px; padding: 2px 6px;
+      background: rgba(34,197,94,0.12); color: #7dd3a3; border: 1px solid rgba(34,197,94,0.15);
+    }
+    .calendar-person-chip.double {
+      background: rgba(245,158,11,0.12); color: #fbbf24; border-color: rgba(245,158,11,0.18);
+    }
+    .calendar-empty {
+      color: var(--c-text-tertiary); font-size: 12px; margin-top: auto;
+    }
+    .ranking-list {
+      display:flex; flex-direction:column;
+    }
+    .ranking-item {
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      padding: 14px 20px; border-bottom: 1px solid var(--c-border);
+    }
+    .ranking-item:last-child { border-bottom:none; }
+    .ranking-name {
+      font-size: 14px; font-weight: 700; color: var(--c-text-primary);
+    }
+    .ranking-meta {
+      margin-top: 4px; font-size: 12px; color: var(--c-text-secondary);
+    }
+    .ranking-value {
+      text-align:right; flex-shrink:0;
+    }
+    .ranking-value strong {
+      display:block; font-size: 22px; line-height:1; color: var(--c-text-primary);
+    }
+    .ranking-value span {
+      display:block; margin-top: 6px; font-size: 11px; color: var(--c-text-tertiary);
+    }
+    @media (max-width: 1100px) {
+      .tracking-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .tracking-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 760px) {
+      .tracking-kpis { grid-template-columns: 1fr; }
+      .tracking-calendar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .calendar-weekday { display:none; }
+    }
+
+    /* ── Dropdowns ── */
+    .queue-menu-wrap { position: relative; }
+    .menu-btn { background: transparent; border: none; color: var(--c-text-tertiary); cursor: pointer; padding: 6px; border-radius: 6px; transition: all var(--t-fast); display:flex; align-items:center; }
+    .menu-btn:hover { background: var(--c-surface-hover); color: var(--c-text-primary); }
+    
+    .dropdown {
+      position: absolute; right: 0; top: calc(100% + 4px); z-index: 100;
+      background: var(--c-surface); border: 1px solid var(--c-border-focus);
+      border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+      min-width: 170px; overflow: hidden;
+      animation: dd-in var(--t-fast);
+    }
+    @keyframes dd-in { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+    .dropdown-item {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 16px;
+      font: 500 13px 'Inter',sans-serif; color: var(--c-text-primary); text-align: left;
+      background: transparent; border: none; cursor: pointer; transition: background var(--t-fast);
+    }
+    .dropdown-item:hover { background: var(--c-surface-hover); }
+
+    /* ── Stats & Tables ── */
+    .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px; }
+    .kpi-card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-lg); padding: 24px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+    .kpi-number { font-size: 36px; font-weight: 800; color: var(--c-text-primary); line-height: 1; }
+    .kpi-label { font-size: 12px; font-weight: 600; color: var(--c-text-tertiary); text-transform: uppercase; margin-top: 8px; letter-spacing: 0.5px; }
+    
+    .stat-row { display: flex; align-items: center; padding: 12px 24px; border-bottom: 1px solid var(--c-border); gap: 16px; }
+    .stat-row:last-child { border-bottom:none; }
+    .stat-name { flex: 1; font-weight: 600; font-size:14px; }
+    .stat-count { font-size: 18px; font-weight: 800; color: var(--c-accent); font-variant-numeric: tabular-nums; }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 14px 24px; text-align: left; font-size: 11px; font-weight: 700; color: var(--c-text-tertiary); text-transform: uppercase; border-bottom: 1px solid var(--c-border); background: rgba(0,0,0,0.2); }
+    tbody td { padding: 16px 24px; border-bottom: 1px solid var(--c-border); font-size: 14px; }
+    tbody tr:hover td { background: var(--c-surface-hover); }
+    .table-empty { padding: 40px; text-align: center; color: var(--c-text-tertiary); font-size:13px; }
+    
+    /* ── Drops Widget ── */
+    .drops-widget {
+      border-top: 1px solid var(--c-border); padding: 20px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(0,0,0,0.15);
+    }
+    
+    /* ── Lists Config (Brokers, Shifts) ── */
+    .broker-item { display: flex; align-items: center; gap: 14px; padding: 14px 24px; border-bottom: 1px solid var(--c-border); }
+    .broker-item:last-child { border-bottom: none; }
+    .broker-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--c-border-focus); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; overflow: hidden; flex-shrink:0; }
+    .broker-name-text { font-size: 14px; font-weight: 600; flex: 1; min-width:0; }
+    .in-queue-chip { display: inline-flex; font-size: 10px; font-weight: 700; text-transform: uppercase; color: #22c55e; background: rgba(34, 197, 94, 0.1); padding: 2px 6px; border-radius: 4px; margin-top: 4px; border:1px solid rgba(34,197,94,0.2); }
+    .broker-sub { font-size:12px; margin-top:4px;}
+
+    .shift-item { display: flex; align-items: center; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--c-border); }
+    .shift-item:last-child { border-bottom:none; }
+    .shift-swatch { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; box-shadow:0 0 0 4px rgba(0,0,0,0.2); }
+    .shift-name-text { font-size: 15px; font-weight: 600; flex: 1; }
+
+    /* Plantões Externos (Admin lists) */
+    .ext-queue-card {
+      background: rgba(255,255,255,0.015); border: 1px solid var(--c-border); border-radius: var(--r-md); margin-bottom: 20px; overflow: hidden;
+    }
+    .ext-queue-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--c-border); background: rgba(0,0,0,0.2); }
+    .ext-queue-title { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing:0.5px;}
+    .ext-queue-body { display: flex; flex-direction: column; }
+    .ext-queue-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--c-border); position: relative; }
+    .ext-queue-item:last-child { border-bottom: none; }
+    .ext-pos { width: 24px; height: 24px; border-radius: 50%; background: var(--c-surface-hover); border:1px solid var(--c-border-focus); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+    .ext-item-name { flex:1; font-weight:600; font-size:13px; color:var(--c-text-primary); }
+    .ext-item-meta { font-size:11px; color:var(--c-text-tertiary); margin-top:2px; }
+
+    /* ── Toasts ── */
+    #toast-zone { position: fixed; bottom: 32px; right: 32px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; pointer-events: none; }
+    .toast {
+      background: var(--c-surface); border: 1px solid var(--c-border-focus);
+      color: var(--c-text-primary); font: 500 14px/1.4 'Inter',sans-serif;
+      padding: 14px 20px; border-radius: var(--r-md); box-shadow: var(--shadow-lg); pointer-events: all;
+      animation: toast-in var(--t-base) forwards; min-width:200px;
+    }
+    .toast.out { animation: toast-out var(--t-base) forwards; }
+    @keyframes toast-in  { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
+
+    /* ── Crop Modal ── */
+    #crop-modal { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); align-items: center; justify-content: center; }
+    #crop-modal.open { display: flex; }
+    .crop-box { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-xl); padding: 32px; width: 480px; max-width: 90vw; display: flex; flex-direction: column; gap: 24px; box-shadow: var(--shadow-lg); }
+    .crop-box h3 { font-size: 18px; font-weight: 600; margin:0; color:#fff; }
+    .crop-area { height: 360px; background: #000; border-radius: var(--r-md); overflow: hidden; }
+    .crop-area img { max-width: 100%; display: block; }
+    .crop-actions { display: flex; justify-content: flex-end; gap: 12px; }
+    
+    hr.divider { border:none; border-top:1px solid var(--c-border); margin:16px 0; }
+  </style>
+</head>
+<body>
+
+<a href="#main" class="skip-link" style="position:absolute; top:-100%; opacity:0">Ir para conteúdo</a>
+
+<div id="app-container">
+  
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="/logo-white.png" alt="Imobiliaria Geum" />
+    </div>
+    <nav class="nav-menu" role="tablist">
+      <button class="nav-item active" role="tab" onclick="switchNav('lead',this)"><i data-lucide="layout-dashboard"></i> Painel Principal</button>
+      <button class="nav-item" role="tab" onclick="switchNav('acompanhamento',this)"><i data-lucide="calendar-range"></i> Acompanhamento</button>
+      <button class="nav-item" role="tab" onclick="switchNav('corretores',this)"><i data-lucide="users"></i> QG de Corretores</button>
+      <button class="nav-item" role="tab" onclick="switchNav('plantoes',this)"><i data-lucide="map-pin"></i> Configurar Plantões</button>
+      <button class="nav-item" role="tab" onclick="switchNav('stats',this)"><i data-lucide="bar-chart-2"></i> Estatísticas</button>
+    </nav>
+    <div class="sidebar-bottom">
+
+      <button id="btn-tv-theme" onclick="toggleTvTheme()" class="btn btn-secondary" style="width:100%; justify-content:flex-start">
+        <i data-lucide="monitor"></i> TV: Escuro
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-area" id="main">
+    <header class="topbar">
+      <div class="topbar-title" id="page-title">Painel Principal</div>
+      <div class="topbar-right">
+        <a href="/mobile" target="_blank" class="app-link"><i data-lucide="smartphone"></i> App Corretor</a>
+        <a href="/tv.html" target="_blank" class="app-link"><i data-lucide="tv"></i> Tela TV</a>
+        <div class="ws-pill">
+          <div class="ws-dot" id="ws-dot"></div>
+          <span id="ws-label">Conectando…</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="content-viewport">
+      
+      <!-- PANE: LEAD / PAINEL PRINCIPAL -->
+      <div id="pane-lead" class="pane active" role="tabpanel">
+        
+        <div class="hero-banner" id="next-banner" style="display:none;">
+          <div class="next-info">
+            <div class="next-pulse"><i data-lucide="zap"></i></div>
+            <div class="next-labels">
+              <span class="next-subtitle">Próximo a receber lead</span>
+              <span class="next-name" id="next-name">—</span>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-huge" id="btn-send-lead" onclick="sendLead()" disabled>
+            <i data-lucide="send"></i> Enviar Lead Agora
+          </button>
+        </div>
+        <div class="hero-empty" id="next-empty" style="display:none">
+          <i data-lucide="ghost" style="width:48px; height:48px; margin-bottom:16px; opacity:0.5; color:var(--c-text-tertiary)"></i>
+          <h3 style="font-size:18px; color:var(--c-text-primary); margin-bottom:8px">Fila Vazia</h3>
+          <p>Nenhum corretor disponível no momento para receber leads.</p>
+        </div>
+
+        <div class="inline-form" style="align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px">
+          <div>
+            <div style="font-size:12px; font-weight:700; color:var(--c-text-tertiary); text-transform:uppercase; letter-spacing:.5px">Ações do Dia</div>
+            <div style="font-size:14px; color:var(--c-text-secondary); margin-top:4px">Use este botão para apagar apenas o histórico de leads enviados hoje.</div>
+          </div>
+          <button class="btn-danger-ghost" id="btn-clear-today-leads" onclick="clearTodayLeadsHistory()">
+            <i data-lucide="trash-2" style="width:14px; height:14px"></i>
+            Limpar Leads Enviados Hoje
+          </button>
+        </div>
+
+        <div class="dash-grid">
+          <div class="col-main">
+            <!-- Adicionar à fila inline -->
+            <div class="inline-form">
+              <div class="form-row">
+                <label class="field-label" for="select-broker">Adicionar Corretor à Fila Física</label>
+                <select id="select-broker" style="background:#09090b"><option value="">Selecione o corretor…</option></select>
+              </div>
+              <button class="btn btn-secondary" style="height:45px; padding:0 24px" onclick="addToQueue()"><i data-lucide="log-in" style="width:16px"></i> Inserir</button>
+            </div>
+            <label class="time-toggle-row" for="toggle-time" style="margin-top:-8px; margin-bottom:16px">
+              <input type="checkbox" id="toggle-time" onchange="document.getElementById('time-field').style.display=this.checked?'block':'none'" />
+              Informar horário de chegada forçado
+            </label>
+            <div id="time-field"><input type="time" id="arrived-at" style="width:160px; margin-bottom:16px; background:#09090b" /></div>
+
+            <!-- Fila Principal -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title"><i data-lucide="list-ordered" style="width:16px;color:var(--c-accent)"></i> Fila de Plantão (<span id="queue-count">0</span>)</h2>
+                <button class="btn-danger-ghost" onclick="clearQueue()"><i data-lucide="trash-2" style="width:14px; height:14px"></i> Limpar Fila</button>
+              </div>
+              <div class="queue-list" id="queue-list">
+                <div class="queue-empty">Nenhum corretor na fila</div>
+              </div>
+              <!-- Drops sub-widget -->
+              <div class="drops-widget">
+                <div style="display:flex; align-items:center; gap:16px">
+                  <div style="background:rgba(99,102,241,0.1); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                    <i data-lucide="droplet" style="color:var(--c-accent); width:20px"></i>
+                  </div>
+                  <div>
+                    <div style="font-size:11px; font-weight:700; color:var(--c-text-tertiary); text-transform:uppercase; margin-bottom:2px">Drops Hoje</div>
+                    <div style="font-size:24px; font-weight:800; line-height:1" id="drops-count">0</div>
+                  </div>
+                </div>
+                <div style="display:flex; gap:8px">
+                  <button class="btn btn-ghost" onclick="removeDrop()"><i data-lucide="minus"></i></button>
+                  <button class="btn btn-secondary" onclick="addDrop()"><i data-lucide="plus"></i> Adicionar Drop</button>
+                  <button class="btn-danger-ghost" onclick="clearTodayLeadsHistory()" title="Apaga somente os leads enviados hoje">
+                    <i data-lucide="trash-2" style="width:14px; height:14px"></i>
+                    Limpar Leads Hoje
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Plantonistas do Dia -->
+            <div class="card">
+              <div class="card-header" style="border-bottom:none; padding-bottom:0">
+                <h2 class="card-title" style="color:var(--c-text-secondary)"><i data-lucide="user-check" style="width:16px"></i> Plantonistas do Dia </h2>
+                <span id="plantonistas-status" class="count-badge" style="background:transparent;border:1px solid var(--c-border-focus)">Auto</span>
+              </div>
+              <div class="card-body" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+                <select id="plantonista-1" style="flex:1; min-width:140px; background:#09090b; margin-bottom:0;"></select>
+                <select id="plantonista-2" style="flex:1; min-width:140px; background:#09090b; margin-bottom:0;"></select>
+                <div style="display:flex; gap:8px">
+                  <button class="btn btn-secondary" onclick="savePlantonistas()">Salvar</button>
+                  <button class="btn-danger-ghost" onclick="clearPlantonistas()">Limpar manual</button>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+
+          <div class="col-side">
+            <!-- Plantão Externo Rápido -->
+            <div class="card" style="margin-bottom:24px; background:rgba(99,102,241,0.03); border-color:rgba(99,102,241,0.2)">
+              <div class="card-header" style="padding-bottom:12px; border:none">
+                <h2 class="card-title" style="color:var(--c-accent)"><i data-lucide="external-link" style="width:16px"></i> Alocar Plantão Externo</h2>
+              </div>
+              <div class="card-body" style="padding-top:0">
+                <select id="ext-broker" style="margin-bottom:12px; background:#09090b"><option value="">Corretor…</option></select>
+                <select id="ext-shift-select" style="margin-bottom:12px; background:#09090b"><option value="">Plantão…</option></select>
+                <button class="btn btn-primary" style="width:100%" onclick="addExternal()">Alocar Externo</button>
+              </div>
+            </div>
+
+            <!-- Fila Ext Section -->
+            <div id="ext-queues-section"></div>
+
+            <!-- Presença -->
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title"><i data-lucide="building-2" style="width:16px"></i> Presença no Prédio</h2>
+                <div style="display:flex; align-items:center; gap:8px">
+                  <span class="count-badge" id="attendance-count">0</span>
+                  <button class="btn-danger-ghost" onclick="clearAttendance()" title="Limpar todos os registros" style="padding:4px"><i data-lucide="trash-2" style="width:14px; height:14px"></i></button>
+                </div>
+              </div>
+              <div class="queue-list" id="attendance-list">
+                <div class="queue-empty">Nenhuma presença</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: ACOMPANHAMENTO -->
+      <div id="pane-acompanhamento" class="pane" role="tabpanel">
+        <div class="tracking-topbar">
+          <div>
+            <div class="tracking-month-title" id="tracking-month-title">Acompanhamento mensal</div>
+            <div class="tracking-month-subtitle" id="tracking-month-subtitle">Carregando presença e plantões...</div>
+          </div>
+          <div class="tracking-month-nav">
+            <button class="btn btn-secondary" onclick="changeTrackingMonth(-1)"><i data-lucide="chevron-left" style="width:14px"></i> Mês anterior</button>
+            <input id="tracking-month-input" class="tracking-input" type="month" onchange="setTrackingMonth(this.value)" />
+            <button class="btn btn-secondary" onclick="changeTrackingMonth(1)">Próximo mês <i data-lucide="chevron-right" style="width:14px"></i></button>
+          </div>
+        </div>
+
+        <div class="tracking-kpis" id="tracking-kpis">
+          <div class="tracking-kpi"><div class="tracking-kpi-label">Carregando</div><div class="tracking-kpi-value">--</div></div>
+        </div>
+
+        <div class="tracking-grid">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title"><i data-lucide="calendar-days" style="width:16px"></i> Calendário de Presença</h2>
+              <span class="count-badge" id="tracking-calendar-badge">0 dias com registro</span>
+            </div>
+            <div class="tracking-calendar" id="tracking-calendar"></div>
+          </div>
+
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title"><i data-lucide="trophy" style="width:16px"></i> Ranking de Presença</h2>
+              </div>
+              <div class="ranking-list" id="tracking-ranking">
+                <div class="queue-empty">Carregando...</div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title"><i data-lucide="clipboard-list" style="width:16px"></i> Menor Presença</h2>
+              </div>
+              <div class="ranking-list" id="tracking-lowlights">
+                <div class="queue-empty">Carregando...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: CORRETORES -->
+      <div id="pane-corretores" class="pane" role="tabpanel">
+        <div class="dash-grid">
+          <div class="col-main">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Corretores da Base</h2></div>
+              <div class="queue-list" id="brokers-list">
+                <div class="queue-empty">Carregando…</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-side">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Novo Corretor</h2></div>
+              <div class="card-body">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:24px">
+                  <div id="new-broker-photo-preview" onclick="document.getElementById('new-broker-photo').click()" style="width:88px; height:88px; border-radius:50%; border:2px dashed var(--c-border-focus); display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; background:var(--c-surface-hover); color:var(--c-text-tertiary); transition:var(--t-fast)">
+                    <i data-lucide="camera" style="width:28px; height:28px"></i>
+                  </div>
+                  <div style="font-size:12px; color:var(--c-text-tertiary); font-weight:500;">Adicionar Foto do Perfil</div>
+                </div>
+                <input type="file" id="new-broker-photo" accept="image/*" style="display:none" onchange="previewBrokerPhoto(this)" />
+                <div class="form-row">
+                  <label class="field-label" for="new-broker-name">Nome Completo</label>
+                  <input type="text" id="new-broker-name" placeholder="Ex: João da Silva" autocomplete="name" />
+                </div>
+                <button class="btn btn-primary" style="width:100%" onclick="createBroker()">Cadastrar Corretor</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: PLANTÕES EXTERNOS -->
+      <div id="pane-plantoes" class="pane" role="tabpanel">
+        <div class="dash-grid">
+          <div class="col-main">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Locais Ativos</h2></div>
+              <div class="queue-list" id="shifts-list">
+                <div class="queue-empty">Carregando…</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-side">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Criar Novo Plantão</h2></div>
+              <div class="card-body">
+                <div class="form-row">
+                  <label class="field-label">Nome de Identificação</label>
+                  <input type="text" id="new-shift-name" placeholder="Ex: Stand 84 Jardins" />
+                </div>
+                <div class="form-row">
+                  <label class="field-label">Cor de Destaque Visual</label>
+                  <div style="display:flex; align-items:center; gap:12px">
+                    <input type="color" id="new-shift-color" value="#6366f1" />
+                    <span style="font-size:12px; color:var(--c-text-tertiary); line-height:1.4">Esta cor representará o local <br/>no sistema e nas etiquetas</span>
+                  </div>
+                </div>
+                <button class="btn btn-primary" style="width:100%; margin-top:8px" onclick="createShift()">Salvar Plantão Externo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: ESTATÍSTICAS -->
+      <div id="pane-stats" class="pane" role="tabpanel">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:16px">
+          <button class="btn-danger-ghost" onclick="clearTodayLeadsHistory()" title="Apaga somente o histórico de leads enviados hoje">
+            <i data-lucide="trash-2" style="width:14px; height:14px"></i>
+            Limpar Histórico de Hoje
+          </button>
+        </div>
+        <div class="kpi-row" id="kpi-row"></div>
+        <div class="dash-grid">
+          <div class="col-main">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Top Recebimentos Hoje</h2></div>
+              <div id="stat-hoje"></div>
+            </div>
+          </div>
+          <div class="col-side">
+            <div class="card">
+              <div class="card-header"><h2 class="card-title">Resumo Semanais (7d)</h2></div>
+              <div id="stat-semana"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<div id="toast-zone" aria-live="polite"></div>
+
+<!-- Crop Modal -->
+<div id="crop-modal" role="dialog" aria-modal="true">
+  <div class="crop-box">
+    <h3>Ajustar Foto do Corretor</h3>
+    <div class="crop-area"><img id="crop-img" src="" alt="" /></div>
+    <div class="crop-actions">
+      <button class="btn btn-ghost" onclick="closeCropper()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmCrop()">Confirmar Recorte</button>
+    </div>
+  </div>
+</div>
+<script>
+  function switchNav(id, btn) {
+    document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('pane-' + id).classList.add('active');
+    
+    // Titulo da pagina
+    const titles = {
+      'lead': 'Painel Principal',
+      'acompanhamento': 'Acompanhamento de Gestores',
+      'corretores': 'Gerenciamento de Corretores',
+      'plantoes': 'Configuração de Plantões',
+      'stats': 'Estatísticas de Desempenho'
+    };
+    document.getElementById('page-title').textContent = titles[id] || 'Painel Principal';
+
+    if (id === 'acompanhamento') loadAttendanceInsights();
+    if (id === 'corretores') loadBrokers();
+    if (id === 'plantoes')   loadShifts();
+    if (id === 'stats')      loadStats();
+  }
+  
+  // Create icons at boot
+  document.addEventListener('DOMContentLoaded', () => {
+    try { lucide.createIcons(); } catch(e){}
+    const monthInput = document.getElementById('tracking-month-input');
+    if (monthInput) monthInput.value = currentTrackingMonth;
+    
+    let lucideTimer;
+    const observer = new MutationObserver((mutations) => {
+      const hasNewNodes = mutations.some(m => m.addedNodes.length > 0);
+      if (hasNewNodes) {
+        clearTimeout(lucideTimer);
+        lucideTimer = setTimeout(() => {
+          try { lucide.createIcons(); } catch(e){}
+        }, 50);
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+</script>
+
+
+<script>
+  let queue = [], brokers = [], externalQueues = [], attendance = [], attendanceInsights = null;
+  let externalShifts = [];
+  let currentStatsSummary = { total_hoje: 0, total_semana: 0, total_geral: 0, hoje: [], semana: [] };
+  let currentTrackingMonth = new Date().toISOString().slice(0, 7);
+  let queueSignature = '';
+  let externalQueueSignature = '';
+  let realtimeSocket = null;
+  let realtimeReconnectTimer = null;
+  let fallbackRefreshTimer = null;
+  let realtimeConfigPromise = null;
+  let supabaseClient = null;
+  let supabaseChannel = null;
+  let scheduledRefreshTimer = null;
+  const FALLBACK_REFRESH_MS = 5000;
+
+  function applyQueueState(q, eq) {
+    if (!Array.isArray(q) || !Array.isArray(eq)) return;
+    const nextQueueSig = q.map(e => `${e.id}:${e.position}`).join('|');
+    const nextExternalSig = eq.map(g => `${g.name}:${(g.entries||[]).map(e => `${e.id}:${e.position}`).join(',')}`).join('|');
+    if (nextQueueSig === queueSignature && nextExternalSig === externalQueueSignature) return;
+    queueSignature = nextQueueSig;
+    externalQueueSignature = nextExternalSig;
+    queue = q;
+    externalQueues = eq;
+    renderQueue();
+    renderNextBanner();
+    renderExternalQueues();
+  }
+
+  async function refreshQueueState() {
+    try {
+      try {
+        const [q, eq, shifts, settings, brokerList, drops, attendanceList] = await Promise.all([
+          api('GET', '/api/queue'),
+          api('GET', '/api/queue/external'),
+          api('GET', '/api/external-shifts'),
+          api('GET', '/api/settings'),
+          api('GET', '/api/brokers'),
+          api('GET', '/api/drops'),
+          api('GET', '/api/attendance'),
+        ]);
+        applyQueueState(q, eq);
+        if (Array.isArray(shifts)) applyExternalShiftsState(shifts);
+        if (settings) {
+          tvTheme = settings.tv_theme || tvTheme;
+          currentPlantonistas = settings.plantonistas || [];
+          updateTvThemeBtn();
+          renderPlantonistaSelects();
+        }
+        if (Array.isArray(brokerList)) {
+          brokers = brokerList;
+          renderBrokersList();
+          syncSel();
+        }
+        if (typeof drops?.drops_hoje === 'number') {
+          document.getElementById('drops-count').textContent = drops.drops_hoje;
+        }
+        if (Array.isArray(attendanceList)) {
+          attendance = attendanceList;
+          renderAttendanceList();
+          if (document.getElementById('pane-acompanhamento').classList.contains('active')) {
+            loadAttendanceInsights();
+          }
+        }
+      } catch { /* ignora erros de rede transitórios */ }
+    } catch { /* ignora erros de rede transitórios */ }
+  }
+
+  function scheduleRefreshQueueState(delay = 250) {
+    clearTimeout(scheduledRefreshTimer);
+    scheduledRefreshTimer = setTimeout(() => {
+      refreshQueueState();
+    }, delay);
+  }
+
+  function applyExternalShiftsState(shifts) {
+    if (!Array.isArray(shifts)) return;
+    externalShifts = shifts;
+    const sel = document.getElementById('ext-shift-select');
+    sel.innerHTML = '<option value="">Selecione o plantão…</option>' +
+      externalShifts.map(s => `<option value="${esc(s.name)}" data-color="${esc(s.color)}">${esc(s.name)}</option>`).join('');
+    const el = document.getElementById('shifts-list');
+    if (!el) return;
+    if (!externalShifts.length) {
+      el.innerHTML = '<div class="queue-empty">Nenhum plantão cadastrado</div>';
+      return;
+    }
+    el.innerHTML = externalShifts.map(s => `
+      <div class="shift-item" role="listitem">
+        <div class="shift-swatch" style="background:${esc(s.color)}"></div>
+        <div class="shift-name-text">${esc(s.name)}</div>
+        <button class="btn-danger-ghost" onclick="deleteShift('${s.id}','${esc(s.name)}')" aria-label="Excluir ${esc(s.name)}" style="cursor:pointer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  function connectRealtime() {
+    clearTimeout(realtimeReconnectTimer);
+    try {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      realtimeSocket = new WebSocket(`${proto}//${location.host}`);
+    } catch {
+      setWS(false);
+      return;
+    }
+
+    realtimeSocket.onopen = () => {
+      setWS(true);
+    };
+
+    realtimeSocket.onmessage = event => {
+      try {
+        const data = JSON.parse(event.data);
+        if (Array.isArray(data.queue) && Array.isArray(data.external_queues)) {
+          applyQueueState(data.queue, data.external_queues);
+        }
+        if (Array.isArray(data.brokers)) {
+          brokers = data.brokers;
+          syncSel();
+          renderPlantonistaSelects();
+          renderBrokersList();
+        }
+        if (Array.isArray(data.external_shifts)) {
+          applyExternalShiftsState(data.external_shifts);
+        }
+        if (data.settings) {
+          tvTheme = data.settings.tv_theme || tvTheme;
+          currentPlantonistas = data.settings.plantonistas || [];
+          updateTvThemeBtn();
+          renderPlantonistaSelects();
+        }
+        if (data.stats && document.getElementById('pane-stats').classList.contains('active')) {
+          renderStats(data.stats);
+        }
+        if (typeof data.drops_hoje === 'number') {
+          document.getElementById('drops-count').textContent = data.drops_hoje;
+        }
+        if (Array.isArray(data.attendance)) {
+          attendance = data.attendance;
+          renderAttendanceList();
+          if (document.getElementById('pane-acompanhamento').classList.contains('active')) {
+            loadAttendanceInsights();
+          }
+        }
+      } catch {}
+    };
+
+    realtimeSocket.onclose = () => {
+      setWS(false);
+      realtimeReconnectTimer = setTimeout(connectRealtime, 2000);
+    };
+
+    realtimeSocket.onerror = () => {
+      setWS(false);
+      try { realtimeSocket.close(); } catch {}
+    };
+
+    if (!fallbackRefreshTimer) {
+      fallbackRefreshTimer = setInterval(() => {
+        if (!realtimeSocket || realtimeSocket.readyState !== WebSocket.OPEN) refreshQueueState();
+      }, FALLBACK_REFRESH_MS);
+    }
+  }
+
+  async function getRealtimeConfig() {
+    if (!realtimeConfigPromise) {
+      realtimeConfigPromise = fetch('/api/realtime-config')
+        .then(r => r.ok ? r.json() : { enabled: false })
+        .catch(() => ({ enabled: false }));
+    }
+    return realtimeConfigPromise;
+  }
+
+  async function connectSupabaseRealtime() {
+    const cfg = await getRealtimeConfig();
+    if (!cfg?.enabled || !cfg.url || !cfg.key) return false;
+
+    try {
+      const mod = await import('https://esm.sh/@supabase/supabase-js@2');
+      supabaseClient = mod.createClient(cfg.url, cfg.key, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      supabaseChannel = supabaseClient
+        .channel('admin-db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'queue_entries' }, () => scheduleRefreshQueueState())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => scheduleRefreshQueueState())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'drops' }, () => scheduleRefreshQueueState())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'brokers' }, () => scheduleRefreshQueueState())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'broker_attendance' }, () => scheduleRefreshQueueState())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'external_shifts' }, () => scheduleRefreshQueueState())
+        .subscribe(status => {
+          if (status === 'SUBSCRIBED') setWS(true);
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') setWS(false);
+        });
+
+      return true;
+    } catch {
+      setWS(false);
+      return false;
+    }
+  }
+
+  async function initRealtime() {
+    const connected = await connectSupabaseRealtime();
+    if (!connected) connectRealtime();
+  }
+
+  function setWS(ok) {
+    document.getElementById('ws-dot').className = 'ws-dot' + (ok ? ' on' : '');
+    document.getElementById('ws-label').textContent = ok ? 'Ao vivo' : 'Atualização automática';
+  }
+
+  function switchTab(id, btn) { window.switchNav(id, btn); }
+
+  function renderQueue() {
+    const el = document.getElementById('queue-list');
+    document.getElementById('queue-count').textContent = queue.length;
+    if (!queue.length) { el.innerHTML = '<div class="queue-empty">Nenhum corretor na fila</div>'; syncSel(); return; }
+    el.innerHTML = queue.map((item, i) => `
+      <div class="queue-item${i===0?' is-first':''}" draggable="true" data-id="${item.id}" role="listitem">
+        <span class="drag-handle" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        </span>
+        <span class="pos-num" aria-hidden="true">${item.position}</span>
+        <div class="queue-info">
+          <div class="queue-name">${esc(item.broker_name)}${item.external_shift?` <span class="ext-badge" title="${esc(item.external_shift)}">${esc(item.external_shift)}</span>`:''}</div>
+          <div class="queue-meta">${arrivedAt(item.entered_at)}</div>
+        </div>
+        <div class="queue-actions">
+          <div class="queue-menu-wrap">
+            <button class="menu-btn" onclick="toggleMenu(event,'menu-${item.id}')" aria-label="Opções para ${esc(item.broker_name)}">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+            </button>
+            <div class="dropdown" id="menu-${item.id}" style="display:none">
+              <button class="dropdown-item" onclick="sendLeadTo('${item.id}','${esc(item.broker_name)}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                Enviar Lead
+              </button>
+            </div>
+          </div>
+          <button class="btn-ghost btn-danger-ghost" onclick="removeFromQueue('${item.id}','${esc(item.broker_name)}')" aria-label="Remover ${esc(item.broker_name)}" style="cursor:pointer">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    const items = el.querySelectorAll('.queue-item');
+    let src = null;
+    items.forEach(item => {
+      item.addEventListener('dragstart', e => { src = item; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+      item.addEventListener('dragend',   () => { item.classList.remove('dragging'); el.querySelectorAll('.queue-item').forEach(i => i.classList.remove('drag-over')); });
+      item.addEventListener('dragover',  e => { e.preventDefault(); el.querySelectorAll('.queue-item').forEach(i => i.classList.remove('drag-over')); if (item !== src) item.classList.add('drag-over'); });
+      item.addEventListener('drop', e => {
+        e.preventDefault();
+        if (!src || src === item) return;
+        const all = [...el.querySelectorAll('.queue-item')];
+        const from = all.indexOf(src), to = all.indexOf(item);
+        const ids = all.map(el => el.dataset.id);
+        ids.splice(from,1); ids.splice(to,0,src.dataset.id);
+        queue = ids.map((id, pos) => ({ ...queue.find(q => q.id === id), position: pos+1 }));
+        renderQueue(); renderNextBanner();
+        api('POST', '/api/queue/reorder', { ids });
+      });
+    });
+    syncSel();
+  }
+
+  function renderNextBanner() {
+    const banner = document.getElementById('next-banner'), empty = document.getElementById('next-empty'), btn = document.getElementById('btn-send-lead');
+    if (queue.length) { banner.style.display='flex'; empty.style.display='none'; btn.disabled=false; document.getElementById('next-name').textContent=queue[0].broker_name; }
+    else              { banner.style.display='none'; empty.style.display='block'; btn.disabled=true; }
+  }
+
+  function renderAttendanceList() {
+    const el = document.getElementById('attendance-list');
+    const count = attendance.filter(item => item.status !== 'absent').length;
+    document.getElementById('attendance-count').textContent = count;
+    if (!attendance.length) {
+      el.innerHTML = '<div class="queue-empty">Nenhuma presença registrada</div>';
+      return;
+    }
+    el.innerHTML = attendance.map(item => {
+      const meta = item.first_seen_at ? `Primeiro registro: ${arrivedAt(item.first_seen_at)}` : 'Aguardando leitura do QR Code';
+      const avatar = item.broker_photo_url
+        ? `<img src="${item.broker_photo_url}" alt="${esc(item.broker_name)}" style="width:100%;height:100%;object-fit:cover">`
+        : esc((item.broker_name || '?').charAt(0).toUpperCase());
+      return `
+        <div class="attendance-item${item.status === 'gone' ? ' gone' : ''}" role="listitem">
+          <div class="attendance-avatar">${avatar}</div>
+          <div class="attendance-main">
+            <div class="attendance-name">${esc(item.broker_name)}</div>
+            <div class="attendance-meta">${esc(meta)}</div>
+          </div>
+          <span class="attendance-chip ${esc(item.status)}">${esc(item.status_label || item.status)}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function syncSel() {
+    const inQ = new Set(queue.map(q => q.broker_id));
+    ['select-broker','ext-broker'].forEach(id => {
+      Array.from(document.getElementById(id).options).forEach(o => { if (o.value) o.disabled = inQ.has(o.value); });
+    });
+  }
+
+  async function addToQueue() {
+    const broker_id = document.getElementById('select-broker').value;
+    if (!broker_id) { toast('Selecione um corretor'); return; }
+    let entered_at = null;
+    if (document.getElementById('toggle-time').checked) {
+      const t = document.getElementById('arrived-at').value;
+      if (t) {
+        // Build local datetime and convert to UTC for storage
+        const now = new Date();
+        const local = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+          parseInt(t.split(':')[0]), parseInt(t.split(':')[1]), 0);
+        entered_at = local.toISOString().replace('T', ' ').slice(0, 19);
+      }
+    }
+    const r = await api('POST', '/api/queue', { broker_id, entered_at, admin_override: true });
+    if (r.error) { toast(r.error); return; }
+    document.getElementById('select-broker').value = '';
+    document.getElementById('toggle-time').checked = false;
+    document.getElementById('time-field').style.display = 'none';
+    document.getElementById('arrived-at').value = '';
+    const broker = brokers.find(b => b.id === broker_id);
+    queue = [...queue, { ...r, broker_name: broker?.name }].map((e, i) => ({ ...e, position: i + 1 }));
+    renderQueue(); renderNextBanner(); renderExternalQueues(); syncSel();
+  }
+
+  async function removeFromQueue(id, name) {
+    if (!confirm(`Remover ${name} da fila?`)) return;
+    queue = queue.filter(q => q.id !== id).map((e, i) => ({ ...e, position: i + 1 }));
+    renderQueue(); renderNextBanner(); syncSel();
+    await api('DELETE', `/api/queue/${id}`);
+  }
+
+  async function clearQueue() {
+    if (!queue.length) { toast('A fila já está vazia'); return; }
+    if (!confirm(`Limpar toda a fila (${queue.length} corretor${queue.length>1?'es':''})? Esta ação não pode ser desfeita.`)) return;
+    queue = [];
+    renderQueue(); renderNextBanner(); syncSel();
+    toast('Fila limpa');
+    await api('DELETE', '/api/queue');
+  }
+
+  async function clearAttendance() {
+    if (!attendance.length) { toast('Nenhum dado de presença para limpar'); return; }
+    if (!confirm('Limpar todos os registros de presença de corretores no prédio hoje? Esta ação não pode ser desfeita.')) return;
+    const r = await api('DELETE', '/api/attendance');
+    if (r.error) return;
+    attendance = attendance.map(item => ({
+      ...item,
+      id: null,
+      attendance_date: null,
+      first_seen_at: null,
+      last_seen_at: null,
+      status: 'absent',
+      presence_mode: null,
+      last_reason: null,
+      checkout_at: null,
+      return_at: null,
+      lunch_started_at: null,
+      lunch_returned_at: null,
+      shift_doubled: false,
+      status_label: 'Não registrado',
+      assigned_shift: null,
+      assigned_shift_label: null,
+    }));
+    queue = [];
+    externalQueues = [];
+    renderAttendanceList();
+    renderQueue();
+    renderNextBanner();
+    renderExternalQueues();
+    syncSel();
+    toast('Registros de presença apagados');
+  }
+
+  async function clearTodayLeadsHistory() {
+    const stats = await api('GET', '/api/stats');
+    if (stats.error) return;
+    renderStats(stats);
+    const totalHoje = Number(stats?.total_hoje || 0);
+    if (totalHoje <= 0) { toast('Nenhum lead enviado hoje para limpar'); return; }
+    if (!confirm(`Limpar o histórico de ${totalHoje} lead${totalHoje > 1 ? 's' : ''} enviado${totalHoje > 1 ? 's' : ''} hoje? Esta ação não pode ser desfeita.`)) return;
+    const r = await api('DELETE', '/api/leads?scope=today');
+    if (r.error) return;
+    await loadStats();
+    toast(`Histórico de ${r.deleted_count || 0} lead${(r.deleted_count || 0) !== 1 ? 's' : ''} de hoje apagado`);
+  }
+
+  async function addDrop() {
+    const r = await api('POST', '/api/drops', {});
+    document.getElementById('drops-count').textContent = r.drops_hoje;
+    toast('Drop registrado');
+  }
+
+  async function removeDrop() {
+    const current = parseInt(document.getElementById('drops-count').textContent) || 0;
+    if (current <= 0) { toast('Nenhum drop para remover'); return; }
+    const r = await api('DELETE', '/api/drops/last');
+    document.getElementById('drops-count').textContent = r.drops_hoje;
+    toast('Drop removido');
+  }
+
+  async function sendLead() {
+    if (!queue.length) { toast('Fila vazia!'); return; }
+    document.getElementById('btn-send-lead').disabled = true;
+    const r = await api('POST', '/api/leads', {});
+    if (r.error) { toast(r.error); document.getElementById('btn-send-lead').disabled = false; return; }
+    const [first, ...rest] = queue;
+    queue = [...rest, first].map((e, i) => ({ ...e, position: i + 1 }));
+    renderQueue(); renderNextBanner(); syncSel();
+    toast(`Lead enviado para ${r.broker?.name || first.broker_name}`);
+  }
+
+  function monthLabel(month) {
+    const [year, monthNumber] = month.split('-').map(Number);
+    return new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' })
+      .format(new Date(year, monthNumber - 1, 1))
+      .replace(/^./, c => c.toUpperCase());
+  }
+
+  function shiftMonth(month, delta) {
+    const [year, monthNumber] = month.split('-').map(Number);
+    const next = new Date(year, monthNumber - 1 + delta, 1);
+    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function setTrackingMonth(month) {
+    if (!month) return;
+    currentTrackingMonth = month;
+    document.getElementById('tracking-month-input').value = month;
+    loadAttendanceInsights();
+  }
+
+  function changeTrackingMonth(delta) {
+    setTrackingMonth(shiftMonth(currentTrackingMonth, delta));
+  }
+
+  async function loadAttendanceInsights() {
+    const data = await api('GET', `/api/attendance/insights?month=${encodeURIComponent(currentTrackingMonth)}`);
+    if (data?.error) return;
+    attendanceInsights = data;
+    renderAttendanceInsights();
+  }
+
+  function renderAttendanceInsights() {
+    const data = attendanceInsights;
+    if (!data) return;
+
+    document.getElementById('tracking-month-title').textContent = data.month_label || monthLabel(currentTrackingMonth);
+    document.getElementById('tracking-month-subtitle').textContent = `${data.summary?.active_brokers || 0} corretores ativos acompanhados neste mês`;
+    document.getElementById('tracking-month-input').value = data.month || currentTrackingMonth;
+    document.getElementById('tracking-calendar-badge').textContent = `${data.summary?.days_with_attendance || 0} dias com registro`;
+
+    const most = data.summary?.broker_most_presence;
+    const least = data.summary?.broker_least_presence;
+    document.getElementById('tracking-kpis').innerHTML = `
+      <div class="tracking-kpi">
+        <div class="tracking-kpi-label">Presenças no mês</div>
+        <div class="tracking-kpi-value">${data.summary?.total_presence_records || 0}</div>
+        <div class="tracking-kpi-meta">${data.summary?.days_with_attendance || 0} dias tiveram registro</div>
+      </div>
+      <div class="tracking-kpi">
+        <div class="tracking-kpi-label">Média por dia ativo</div>
+        <div class="tracking-kpi-value">${data.summary?.average_daily_presence || 0}</div>
+        <div class="tracking-kpi-meta">Considera apenas dias com presença</div>
+      </div>
+      <div class="tracking-kpi">
+        <div class="tracking-kpi-label">Mais presente</div>
+        <div class="tracking-kpi-value">${most ? esc(most.broker_name) : '--'}</div>
+        <div class="tracking-kpi-meta">${most ? `${most.presence_days} dias no prédio` : 'Sem dados'}</div>
+      </div>
+      <div class="tracking-kpi">
+        <div class="tracking-kpi-label">Plantão dobrado</div>
+        <div class="tracking-kpi-value">${data.summary?.total_shift_doubled_records || 0}</div>
+        <div class="tracking-kpi-meta">${least ? `Menor presença: ${esc(least.broker_name)} (${least.presence_days} dias)` : 'Sem dados'}</div>
+      </div>
+    `;
+
+    renderTrackingCalendar(data);
+    renderTrackingRanking(data);
+    renderTrackingLowlights(data);
+  }
+
+  function renderTrackingCalendar(data) {
+    const weekdays = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+    const [year, monthNumber] = (data.month || currentTrackingMonth).split('-').map(Number);
+    const firstDay = new Date(year, monthNumber - 1, 1);
+    const offset = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = data.range?.days_in_month || 31;
+    const dailyMap = new Map((data.daily || []).map(day => [day.date, day]));
+    const cells = [];
+
+    weekdays.forEach(label => {
+      cells.push(`<div class="calendar-weekday">${label}</div>`);
+    });
+
+    for (let i = 0; i < offset; i += 1) {
+      cells.push('<div class="calendar-day muted"></div>');
+    }
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const date = `${data.month}-${String(day).padStart(2, '0')}`;
+      const info = dailyMap.get(date) || { brokers: [], present_count: 0, doubled_count: 0 };
+      const visibleBrokers = (info.brokers || []).slice(0, 4);
+      const extraCount = Math.max((info.brokers || []).length - visibleBrokers.length, 0);
+      cells.push(`
+        <div class="calendar-day${info.present_count ? ' has-presence' : ''}">
+          <div class="calendar-day-head">
+            <div class="calendar-day-number">${day}</div>
+            ${info.present_count ? `<div class="calendar-day-badge">${info.present_count} presentes</div>` : ''}
+          </div>
+          <div class="calendar-day-list">
+            ${visibleBrokers.map(broker => `
+              <div class="calendar-person">
+                <span class="calendar-person-name">${esc(broker.broker_name)}</span>
+                ${broker.shift_doubled ? '<span class="calendar-person-chip double">dobrado</span>' : '<span class="calendar-person-chip">ok</span>'}
+              </div>
+            `).join('')}
+          </div>
+          <div class="calendar-empty">${info.present_count ? `${info.doubled_count || 0} em plantão dobrado${extraCount ? ` • +${extraCount} nomes` : ''}` : 'Sem presença registrada'}</div>
+        </div>
+      `);
+    }
+
+    document.getElementById('tracking-calendar').innerHTML = cells.join('');
+  }
+
+  function renderTrackingRanking(data) {
+    const list = (data.ranking || []).slice(0, 8);
+    const el = document.getElementById('tracking-ranking');
+    if (!list.length) {
+      el.innerHTML = '<div class="queue-empty">Nenhum corretor ativo encontrado</div>';
+      return;
+    }
+    el.innerHTML = list.map(item => `
+      <div class="ranking-item">
+        <div>
+          <div class="ranking-name">${esc(item.broker_name)}</div>
+          <div class="ranking-meta">${item.waiting_days} dias na fila • ${item.shift_doubled_days} dias com plantão dobrado</div>
+        </div>
+        <div class="ranking-value">
+          <strong>${item.presence_days}</strong>
+          <span>dias presentes</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderTrackingLowlights(data) {
+    const list = [...(data.ranking || [])]
+      .sort((a, b) => a.presence_days - b.presence_days || a.broker_name.localeCompare(b.broker_name, 'pt-BR'))
+      .slice(0, 5);
+    const el = document.getElementById('tracking-lowlights');
+    if (!list.length) {
+      el.innerHTML = '<div class="queue-empty">Nenhum corretor ativo encontrado</div>';
+      return;
+    }
+    el.innerHTML = list.map(item => `
+      <div class="ranking-item">
+        <div>
+          <div class="ranking-name">${esc(item.broker_name)}</div>
+          <div class="ranking-meta">${item.present_only_days} dias só com presença • ${item.service_days} em atendimento</div>
+        </div>
+        <div class="ranking-value">
+          <strong>${item.presence_days}</strong>
+          <span>dias presentes</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function renderExternalQueues() {
+    const section = document.getElementById('ext-queues-section');
+    if (!externalQueues.length) { section.innerHTML = ''; return; }
+    section.innerHTML = externalQueues.map(shift => {
+      const c = shift.color || '#3b82f6';
+      const rgb = hexToRgb(c);
+      return `
+      <div class="ext-queue-card" style="background:rgba(${rgb},.07);border-color:rgba(${rgb},.22)">
+        <div class="ext-queue-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0"></div>
+            <h3 class="ext-queue-title" style="color:${c}">${esc(shift.name)}</h3>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="count-badge" style="background:rgba(${rgb},.12);color:${c};border-color:rgba(${rgb},.22)">${shift.entries.length}</span>
+            <button class="btn-danger-ghost" onclick="clearExternalQueue('${esc(shift.name)}')" title="Encerrar plantão" style="cursor:pointer;padding:3px 8px;font-size:11px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              Encerrar
+            </button>
+          </div>
+        </div>
+        <div class="ext-queue-body">
+          ${shift.entries.map((item, i) => `
+            <div class="ext-queue-item" style="position:relative">
+              <span class="ext-pos" style="background:rgba(${rgb},.1);color:${c};border-color:rgba(${rgb},.15)">${item.position}</span>
+              <div style="flex:1;min-width:0">
+                <div class="ext-item-name">${esc(item.broker_name)}</div>
+                <div class="ext-item-meta">${arrivedAt(item.entered_at)}</div>
+              </div>
+              <div class="queue-actions">
+                <div class="queue-menu-wrap">
+                  <button class="menu-btn" onclick="toggleMenu(event,'extmenu-${item.id}')" aria-label="Opções">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+                  </button>
+                  <div class="dropdown" id="extmenu-${item.id}" style="display:none">
+                    <button class="dropdown-item" onclick="sendLeadTo('${item.id}','${esc(item.broker_name)}')">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                      Enviar Lead
+                    </button>
+                  </div>
+                </div>
+                <button class="btn-ghost btn-danger-ghost" onclick="removeFromQueue('${item.id}','${esc(item.broker_name)}')" aria-label="Remover ${esc(item.broker_name)}" style="cursor:pointer">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function clearExternalQueue(name) {
+    if (!confirm(`Encerrar o plantão "${name}"? Todos os corretores serão removidos da fila.`)) return;
+    await api('DELETE', `/api/queue/external/${encodeURIComponent(name)}`);
+    toast(`Plantão "${name}" encerrado`);
+  }
+
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    return `${r},${g},${b}`;
+  }
+
+  async function loadShifts() {
+    applyExternalShiftsState(await api('GET', '/api/external-shifts'));
+  }
+
+  async function createShift() {
+    const name = document.getElementById('new-shift-name').value.trim();
+    const color = document.getElementById('new-shift-color').value;
+    if (!name) { toast('Informe o nome do plantão'); return; }
+    const r = await api('POST', '/api/external-shifts', { name, color });
+    if (r.error) { toast(r.error); return; }
+    document.getElementById('new-shift-name').value = '';
+    toast(`Plantão "${name}" criado`);
+    loadShifts();
+  }
+
+  async function deleteShift(id, name) {
+    if (!confirm(`Excluir o plantão "${name}"?`)) return;
+    await api('DELETE', `/api/external-shifts/${id}`);
+    toast(`Plantão "${name}" excluído`);
+    loadShifts();
+  }
+
+  async function addExternal() {
+    const broker_id = document.getElementById('ext-broker').value;
+    const sel = document.getElementById('ext-shift-select');
+    const external_shift = sel.value;
+    if (!broker_id) { toast('Selecione um corretor'); return; }
+    if (!external_shift) { toast('Selecione o plantão'); return; }
+    const r = await api('POST', '/api/queue', { broker_id, external_shift, admin_override: true });
+    if (r.error) { toast(r.error); return; }
+    document.getElementById('ext-broker').value = '';
+    sel.value = '';
+    toast(`${r.broker_name} adicionado ao plantão ${external_shift}`);
+  }
+
+  function renderBrokersList() {
+    const inQ = new Set(queue.map(q => q.broker_id));
+    const opts = '<option value="">Selecione…</option>' + brokers.map(b => `<option value="${b.id}" ${inQ.has(b.id)?'disabled':''}>${esc(b.name)}</option>`).join('');
+    document.getElementById('select-broker').innerHTML = opts;
+    document.getElementById('ext-broker').innerHTML = opts;
+    renderPlantonistaSelects();
+    const el = document.getElementById('brokers-list');
+    if (!brokers.length) { el.innerHTML = '<div class="queue-empty">Nenhum corretor cadastrado</div>'; return; }
+    el.innerHTML = brokers.map(b => `
+      <div class="broker-item" role="listitem">
+        <div class="broker-avatar" aria-hidden="true" onclick="changeBrokerPhoto('${b.id}')" style="cursor:pointer;position:relative" title="Clique para trocar foto">
+          ${b.photo_url ? `<img src="${b.photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="${esc(b.name)}">` : b.name[0].toUpperCase()}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="broker-name-text">${esc(b.name)}</div>
+          <div class="broker-sub">${inQ.has(b.id)?'<span class="in-queue-chip">Na fila</span>':'&nbsp;'}</div>
+        </div>
+        <div style="margin-right:8px"><div class="broker-leads-today">&nbsp;</div><div class="broker-leads-label">&nbsp;</div></div>
+        <button class="btn-danger-ghost" onclick="deleteBroker('${b.id}','${esc(b.name)}')" aria-label="Desativar ${esc(b.name)}" style="cursor:pointer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  async function loadBrokers(retries = 3) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const r = await fetch('/api/brokers');
+        if (!r.ok) throw new Error(r.status);
+        const list = await r.json();
+        if (Array.isArray(list)) {
+          brokers = list;
+          renderBrokersList();
+          return;
+        }
+      } catch {}
+      await new Promise(ok => setTimeout(ok, 1000));
+    }
+    toast('Erro ao carregar corretores. Recarregue a página.');
+  }
+
+  let pendingPhotoUrl = null;
+
+  function resizeImage(file, maxSize = 300) {
+    return new Promise(resolve => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = url;
+    });
+  }
+
+  function previewBrokerPhoto(input) {
+    if (!input.files[0]) return;
+    openCropper(input.files[0], (dataUrl) => {
+      pendingPhotoUrl = dataUrl;
+      const preview = document.getElementById('new-broker-photo-preview');
+      preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" alt="Preview">`;
+    });
+  }
+
+  function changeBrokerPhoto(id) {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*';
+    input.onchange = () => {
+      if (!input.files[0]) return;
+      openCropper(input.files[0], async (dataUrl) => {
+        await api('PUT', `/api/brokers/${id}`, { photo_url: dataUrl });
+        brokers = brokers.map(b => b.id === id ? { ...b, photo_url: dataUrl } : b);
+        renderBrokersList();
+        toast('Foto atualizada');
+      });
+    };
+    input.click();
+  }
+
+  async function createBroker() {
+    const name = document.getElementById('new-broker-name').value.trim();
+    if (!name) { toast('Informe o nome'); return; }
+    const r = await api('POST', '/api/brokers', { name, photo_url: pendingPhotoUrl });
+    if (r.error) { toast(r.error); return; }
+    document.getElementById('new-broker-name').value = '';
+    document.getElementById('new-broker-photo-preview').innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+    pendingPhotoUrl = null;
+    brokers = [...brokers, r].sort((a, b) => a.name.localeCompare(b.name));
+    renderBrokersList();
+    toast(`${name} cadastrado`);
+  }
+
+  async function deleteBroker(id, name) {
+    if (!confirm(`Desativar ${name}?`)) return;
+    brokers = brokers.filter(b => b.id !== id);
+    renderBrokersList();
+    toast(`${name} desativado`);
+    await api('DELETE', `/api/brokers/${id}`);
+  }
+
+  async function loadStats() { renderStats(await api('GET', '/api/stats')); }
+
+  function renderStats(s) {
+    currentStatsSummary = {
+      total_hoje: Number(s?.total_hoje || 0),
+      total_semana: Number(s?.total_semana || 0),
+      total_geral: Number(s?.total_geral || 0),
+      hoje: Array.isArray(s?.hoje) ? s.hoje : [],
+      semana: Array.isArray(s?.semana) ? s.semana : [],
+    };
+    document.getElementById('kpi-row').innerHTML = `
+      <div class="kpi-card"><div class="kpi-number">${currentStatsSummary.total_hoje}</div><div class="kpi-label">Leads Hoje</div></div>
+      <div class="kpi-card"><div class="kpi-number">${currentStatsSummary.total_semana}</div><div class="kpi-label">7 Dias</div></div>
+      <div class="kpi-card"><div class="kpi-number">${currentStatsSummary.total_geral}</div><div class="kpi-label">Total</div></div>
+    `;
+    const mk = arr => arr.length ? arr.map(x => `<div class="stat-row"><div class="stat-name">${esc(x.name)}</div><div class="stat-count">${x.leads}</div></div>`).join('') : '<div class="queue-empty">Sem dados</div>';
+    document.getElementById('stat-hoje').innerHTML   = mk(currentStatsSummary.hoje);
+    document.getElementById('stat-semana').innerHTML = mk(currentStatsSummary.semana);
+  }
+
+  async function api(method, url, body) {
+    try {
+      const r = await fetch(url, { method, headers: {'Content-Type':'application/json'}, ...(body!==undefined?{body:JSON.stringify(body)}:{}) });
+      const isJson = (r.headers.get('content-type') || '').includes('application/json');
+      const payload = isJson ? await r.json() : null;
+      if (!r.ok) {
+        if (r.status !== 400) toast(`Erro ${r.status} em ${method} ${url}`);
+        return payload ?? { error: `Erro ${r.status}` };
+      }
+      return payload ?? {};
+    } catch (e) {
+      toast(`Erro de rede: ${e.message}`);
+      return {};
+    }
+  }
+  function arrivedAt(iso) {
+    if (!iso) return '';
+    const d = new Date(iso.includes('+') || iso.endsWith('Z') ? iso : iso.replace(' ', 'T') + 'Z');
+    return 'Chegou às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  }
+  function fmtDate(iso)   { return new Date(iso+'Z').toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+  function esc(s)         { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function toast(msg) {
+    const el = document.createElement('div'); el.className='toast'; el.textContent=msg; el.setAttribute('role','status');
+    document.getElementById('toast-zone').appendChild(el);
+    setTimeout(() => { el.classList.add('out'); el.addEventListener('animationend', () => el.remove(), {once:true}); }, 3000);
+  }
+
+  function toggleMenu(event, menuId) {
+    event.stopPropagation();
+    const menu = document.getElementById(menuId);
+    const isOpen = menu.style.display !== 'none';
+    // Fecha todos os dropdowns e reseta z-index
+    document.querySelectorAll('.dropdown').forEach(d => { d.style.display = 'none'; });
+    document.querySelectorAll('.queue-item').forEach(i => { i.style.zIndex = ''; });
+    if (!isOpen) {
+      menu.style.display = 'block';
+      // Eleva o queue-item pai acima dos irmãos
+      const queueItem = menu.closest('.queue-item');
+      if (queueItem) queueItem.style.zIndex = '10';
+    }
+  }
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown').forEach(d => { d.style.display = 'none'; });
+    document.querySelectorAll('.queue-item').forEach(i => { i.style.zIndex = ''; });
+  });
+
+  async function sendLeadTo(entryId, brokerName) {
+    document.querySelectorAll('.dropdown').forEach(d => { d.style.display = 'none'; });
+    const r = await api('POST', `/api/leads/specific/${entryId}`, {});
+    if (r.error) { toast(r.error); return; }
+    const entry = queue.find(q => q.id === entryId);
+    if (entry) {
+      queue = [...queue.filter(q => q.id !== entryId), entry].map((e, i) => ({ ...e, position: i + 1 }));
+      renderQueue(); renderNextBanner(); syncSel();
+    }
+    toast(`Lead enviado para ${brokerName}`);
+  }
+
+  let currentPlantonistas = [];
+
+  function renderPlantonistaSelects() {
+    const opts = '<option value="">Nenhum selecionado</option>' +
+      brokers.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+    document.getElementById('plantonista-1').innerHTML = opts;
+    document.getElementById('plantonista-2').innerHTML = opts;
+    if (currentPlantonistas[0]) document.getElementById('plantonista-1').value = currentPlantonistas[0];
+    if (currentPlantonistas[1]) document.getElementById('plantonista-2').value = currentPlantonistas[1];
+    updatePlantonistaStatus();
+  }
+
+  function updatePlantonistaStatus() {
+    const el = document.getElementById('plantonistas-status');
+    if (currentPlantonistas.length && currentPlantonistas.some(id => id)) {
+      el.textContent = 'Manual';
+      el.style.color = '#3a8c3a';
+    } else {
+      el.textContent = 'Automático';
+      el.style.color = 'var(--c-gray-300)';
+    }
+  }
+
+  async function savePlantonistas() {
+    const p1 = document.getElementById('plantonista-1').value;
+    const p2 = document.getElementById('plantonista-2').value;
+    if (!p1 && !p2) { toast('Selecione pelo menos um plantonista'); return; }
+    if (p1 && p2 && p1 === p2) { toast('Selecione corretores diferentes'); return; }
+    const plantonistas = [p1 || null, p2 || null].filter(Boolean);
+    const r = await api('PUT', '/api/plantonistas', { plantonistas });
+    if (r.error) { toast('Erro: ' + r.error); return; }
+    currentPlantonistas = r.plantonistas || plantonistas;
+    renderPlantonistaSelects();
+    toast('Plantonistas salvos');
+  }
+
+  async function clearPlantonistas() {
+    const r = await api('PUT', '/api/plantonistas', { plantonistas: [] });
+    if (r.error) { toast('Erro ao limpar: ' + r.error); return; }
+    currentPlantonistas = [];
+    document.getElementById('plantonista-1').value = '';
+    document.getElementById('plantonista-2').value = '';
+    updatePlantonistaStatus();
+    toast('Plantonistas limpos — usando sorteio automático');
+  }
+
+  let tvTheme = 'dark';
+
+  async function loadTvTheme() {
+    const cfg = await api('GET', '/api/settings');
+    tvTheme = cfg.tv_theme || 'dark';
+    currentPlantonistas = cfg.plantonistas || [];
+    renderPlantonistaSelects();
+    updateTvThemeBtn();
+  }
+
+  function updateTvThemeBtn() {
+    const btn = document.getElementById('btn-tv-theme');
+    const isLight = tvTheme === 'light';
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${isLight ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>' : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'}</svg> TV: ${isLight ? 'Claro' : 'Escuro'}`;
+    btn.style.background = isLight ? 'rgba(255,255,255,.18)' : 'rgba(255,255,255,.07)';
+  }
+
+  async function toggleTvTheme() {
+    tvTheme = tvTheme === 'dark' ? 'light' : 'dark';
+    updateTvThemeBtn();
+    await api('PUT', '/api/settings', { tv_theme: tvTheme });
+    toast(`TV alterada para modo ${tvTheme === 'light' ? 'claro' : 'escuro'}`);
+  }
+
+  async function init() {
+    initRealtime();
+    refreshQueueState();
+  }
+  init();
+</script>
+
+<!-- Crop Modal -->
+<div id="crop-modal" role="dialog" aria-modal="true" aria-label="Recortar foto">
+  <div class="crop-box">
+    <h3>Recortar foto</h3>
+    <div class="crop-area"><img id="crop-img" src="" alt="" /></div>
+    <div class="crop-actions">
+      <button class="btn" onclick="closeCropper()" style="background:rgba(255,255,255,.08);color:#fff">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmCrop()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+  let cropperInstance = null;
+  let cropCallback = null;
+
+  function openCropper(file, cb) {
+    cropCallback = cb;
+    const url = URL.createObjectURL(file);
+    const img = document.getElementById('crop-img');
+    img.src = url;
+    img.onload = () => {
+      if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+      cropperInstance = new Cropper(img, {
+        aspectRatio: 1,
+        viewMode: 1,
+        dragMode: 'move',
+        autoCropArea: 0.85,
+        cropBoxResizable: true,
+        cropBoxMovable: true,
+        background: false,
+        guides: false,
+        center: false,
+        highlight: false,
+      });
+      document.getElementById('crop-modal').classList.add('open');
+    };
+  }
+
+  function closeCropper() {
+    document.getElementById('crop-modal').classList.remove('open');
+    if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+    cropCallback = null;
+  }
+
+  function confirmCrop() {
+    if (!cropperInstance || !cropCallback) return;
+    const canvas = cropperInstance.getCroppedCanvas({ width: 600, height: 600, imageSmoothingQuality: 'high' });
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    cropCallback(dataUrl);
+    closeCropper();
+  }
+</script>
+</body>
+</html>
